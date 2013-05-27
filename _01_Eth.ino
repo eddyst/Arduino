@@ -2,6 +2,8 @@
 byte mac[] = { 
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE };   // MAC address.
 
+#include <SPI.h>
+#include <Ethernet.h>
 EthernetClient client;
 
 void EthInit() {
@@ -53,6 +55,8 @@ void ethDoEvents() {
       Debug.println();
       Debug.println("connection failed");
       if (connectionErrors++ > 200) {
+        Debug.println("Reset in 10 Sec");
+        delay(10000);
         asm volatile ("  jmp 0");  
       }
       EthState = 3;

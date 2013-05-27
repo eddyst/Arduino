@@ -1,8 +1,6 @@
 //#define DebugOnNano
 #define Debug Serial
 
-#include <SPI.h>
-#include <Ethernet.h>
 //#include <ByteBuffer.h>
 //#include <PString.h>
 #include <MemoryFree.h>

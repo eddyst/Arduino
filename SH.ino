@@ -7,7 +7,6 @@
 //#include <LEDTimer.h>
 //#include <MemoryFree.h>
 #include <PString.h>
-#include <Vitodens.h>
 #include <OneWire.h>
 #include <Servo.h> 
 #include <Clock.h>
@@ -21,7 +20,6 @@ char logBuffer[100];
 PString Log( logBuffer, sizeof( logBuffer));
 
 //LEDTimer step0( 13);
-Vitodens Vito(&Serial1, &Debug);
 
 void setup() {
   Debug.begin( 57600);
@@ -34,12 +32,10 @@ void setup() {
   ledInit();
 //  lcdInit();
 
-  Vito.attach(VitoDebugMsg);
-  Vito.attach(VitoOnValueRead);
-  
   Log.print  ( "setup,");  
   Debug.print( "setup,");
 //    Debug.println( freeMemory());
+  vitoInit();
   EthInit();
   wwInit();
   hkInit();
@@ -49,11 +45,8 @@ void setup() {
 
 void loop() {
 //  step0.doEvents();
-  Vito.doEvents();
   ethDoEvents();
-  if (Vito.awaitingCommand()) {
-    VitoAsk();
-  }
+  vitoDoEvents();
   oneWireDoEvents();
   WWControlDoEvents();
   HKControlDoEvents();

@@ -18,7 +18,6 @@ void setup() {
   Debug.println( "Setup");
   EthInit();
   vitoInit();
-//  lcdInit();
   wwInit();
   hkInit();
   pumpenInit();
@@ -34,7 +33,6 @@ void loop() {
   HKControlDoEvents();
   pumpenDoEvents();
   g_Clock.Maintain();
-//  lcdDoEvents();
 }
 
 

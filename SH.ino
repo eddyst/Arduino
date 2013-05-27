@@ -4,8 +4,8 @@
 #include <SPI.h>
 #include <Ethernet.h>
 //#include <ByteBuffer.h>
-//#include <MemoryFree.h>
 //#include <PString.h>
+#include <MemoryFree.h>
 #include <Clock.h>
 Clock g_Clock;
 
@@ -22,7 +22,7 @@ void setup() {
   hkInit();
   pumpenInit();
   g_Clock.SetTimezoneOffset(1,0); // Setup the clock. In Germany we are 1 hours ahead of GMT 
-//    Debug.println( freeMemory());
+    Debug.println( freeMemory());
 }
 
 void loop() {

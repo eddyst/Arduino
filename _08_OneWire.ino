@@ -1,10 +1,12 @@
 #define OneWireBus1Pin 11
 #define dsDebug
 
+#include <OneWire.h>
 OneWire  ds(OneWireBus1Pin); 
 
 void oneWireInit() {
 }
+
 void oneWireDoEvents() {
   static uint8_t dsState = 1;
   static byte dsAddr[8];

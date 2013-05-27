@@ -3,6 +3,7 @@
 #define PumpeSolarServoPwmMin 30
 #define PumpeSolarServoPwmMax 175
 
+#include <Servo.h> 
 Servo servoSolar;  // create servo object to control a servo a maximum of eight servo objects can be created 
 
 void   pumpenInit() {

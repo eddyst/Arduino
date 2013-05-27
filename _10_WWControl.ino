@@ -38,7 +38,6 @@ void wwInit() {
 
 void   WWControlDoEvents() {
   static uint16_t lastThermeVorlaufTempVorgabeCheck;
-  uint16_t millis16 = millis();
   if (WWControlState >  0) {
     static uint16_t WWVentilOKSince;
     boolean WWVentilValue = digitalRead(WWVentilPin);
@@ -55,7 +54,7 @@ void   WWControlDoEvents() {
     else {
       switch (WWControlState) {                        // Ventil steht richtig
       case 4:
-        if ( millis16 - lastThermeVorlaufTempVorgabeCheck > 60000) { // Nach 60 Sek mal neu rechnen auch wenn sich keine Temperaturen geändert haben
+        if ( (uint16_t)millis() - lastThermeVorlaufTempVorgabeCheck > 60000) { // Nach 60 Sek mal neu rechnen auch wenn sich keine Temperaturen geändert haben
           ThermeVorlaufTempVorgabeRechnen();
         }
         break;
@@ -65,16 +64,16 @@ void   WWControlDoEvents() {
         ThermeVorlaufTempVorgabeValue = ThermeVorlaufTempVorgabeValue + (ThermeVorlaufTempVorgabe * 10 - Values[_ThermeVorlaufTempSoll].ValueX10) * 255 /1000; // ThermeVorlaufTempVorgabeValue berechnen
         Debug.println (ThermeVorlaufTempVorgabeValue);
         analogWrite( ThermeVorlaufTempVorgabePin, ThermeVorlaufTempVorgabeValue);                                                        // PWM setzen
-        lastThermeVorlaufTempVorgabeCheck = millis16;                                                                                 // Wartezeit initialisieren
+        lastThermeVorlaufTempVorgabeCheck = (uint16_t)millis();                                                                                 // Wartezeit initialisieren
         WWControlState = 4;                                                                                                        // und in Status4 wechseln
         break;
       case 1:                                          // Der Taster könnte aberschließen bevor der Motor steht
-        WWVentilOKSince = millis16;                      // deswegen beginnen wir eine Wartezeit
-        Debug.println ("WWVentilOKSince=millis16");
+        WWVentilOKSince = (uint16_t)millis();                      // deswegen beginnen wir eine Wartezeit
+        Debug.println ("WWVentilOKSince=(uint16_t)millis()");
         WWControlState = 2;
         break;
       case 2:                                            
-        if (millis16 - WWVentilOKSince > 3000){            // Wartezeit ist abgelaufen
+        if ((uint16_t)millis() - WWVentilOKSince > 3000){            // Wartezeit ist abgelaufen
           digitalWrite( WWVentilSperrenPin,HIGH);       // das Ventil sperren
           Debug.println ( "WWVentilSperrenPin,HIGH");
           WWControlState = 3;

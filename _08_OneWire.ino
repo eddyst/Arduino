@@ -11,44 +11,45 @@ void oneWireDoEvents() {
   static uint8_t dsState = 1;
   static byte dsAddr[8];
   static uint16_t waitSince; 
+#define dsStateSEARCH             0
+#define dsStateWAIT_BEFORE_RESET  1
+#define dsStateWAIT_AFTER_RESET   2
+#define dsStateSELECT             3
+#define dsStateREAD               4
   switch (dsState) {
-  case 0:
-    if ((uint16_t)millis() - waitSince >= 10000) {
-      dsState = 3;
-    }
-    break;
-  case 1:
+  case dsStateSEARCH:
     if ( !ds.search( dsAddr)) {
-#ifdef dsDebug
-      Debug.println("ds: reset_search");
-#endif
-      ds.reset_search();
+      dsStateChange(&dsState, dsStateWAIT_BEFORE_RESET);
       waitSince = (uint16_t)millis();
-      dsState = 2;
     } 
     else {
-      dsState = 3;
-    }
-  case 2:
-    if ((uint16_t)millis() - waitSince >= 250) {
-      dsState = 3;
+      dsStateChange(&dsState, dsStateSELECT);
     }
     break;
-  case 3:
-      Debug.println();
-      Debug.print("ds: ROM =");
-      for(byte i = 0; i < 8; i++) {
-        Debug.write(' ');
-        Debug.print(dsAddr[i], HEX);
-      }
+  case dsStateWAIT_BEFORE_RESET:
+    if ((uint16_t)millis() - waitSince >= 10000) {
+      dsDebugPrint(F("ds: reset_search"));
+      ds.reset_search();
+
+      dsStateChange(&dsState, dsStateWAIT_AFTER_RESET);
+      waitSince = (uint16_t)millis();
+    }
+    break;
+  case dsStateWAIT_AFTER_RESET:
+    if ((uint16_t)millis() - waitSince >= 250) {
+      dsStateChange(&dsState, dsStateSELECT);
+    }
+    break;
+  case dsStateSELECT:
     if (OneWire::crc8(dsAddr, 7) != dsAddr[7]) {
       Debug.println();
-      Debug.print("ds: ROM =");
+      Debug.print(F("ds: ROM ="));
       for(byte i = 0; i < 8; i++) {
-        Debug.write(' ');
+        Debug.print(F(" "));
         Debug.print(dsAddr[i], HEX);
       }
-      Debug.println(" CRC is not valid!");
+      Debug.println(F(" CRC is not valid!"));
+      dsStateChange(&dsState, dsStateSEARCH);
       return;
     }
 
@@ -57,9 +58,9 @@ void oneWireDoEvents() {
     ds.write(0x44,1);         // start conversion, with parasite power on at the end
 
     waitSince = (uint16_t)millis();
-    dsState = 4;
+    dsStateChange(&dsState, dsStateREAD);
     break;
-  case 4:
+  case dsStateREAD:
     if ((uint16_t)millis() - waitSince >= 1000) {  // maybe 750ms is enough, maybe not
       // we might do a ds.depower() here, but the reset will take care of it.
       byte present = 0;
@@ -71,46 +72,34 @@ void oneWireDoEvents() {
       byte type_s;
       switch (dsAddr[0]) {
       case 0x10:
-#ifdef dsDebug
-        Debug.println("  Chip = DS18S20");  // or old DS1820
-#endif
+        dsDebugPrint(F("  Chip = DS18S20"));  // or old DS1820
         type_s = 1;
         break;
       case 0x28:
-#ifdef dsDebug
-        Debug.println("  Chip = DS18B20");
-#endif        
+        dsDebugPrint(F("  Chip = DS18B20"));
         type_s = 0;
         break;
       case 0x22:
-#ifdef dsDebug
-        Debug.println("  Chip = DS1822");
-#endif
+        dsDebugPrint(F("  Chip = DS1822"));
         type_s = 0;
         break;
       default:
-        Debug.println("Device is not a DS18x20 family device.");
+        Debug.println(F("Device is not a DS18x20 family device."));
         return;
       } 
       // Read Data
       byte data[12];
-#ifdef dsDebug
-      Debug.print("  Data = ");
-      Debug.print(present,HEX);
-      Debug.print(" ");
-#endif
+      dsDebugPrint(F("  Data = "));
+      dsDebugPrint(present,HEX);
+      dsDebugPrint(F(" "));
       for (byte i = 0; i < 9; i++) {           // we need 9 bytes
         data[i] = ds.read();
-#ifdef dsDebug
-        Debug.print(data[i], HEX);
-        Debug.print(" ");
-#endif
+        dsDebugPrint(data[i], HEX);
+        dsDebugPrint(F(" "));
       }
-#ifdef dsDebug
-      Debug.print(" CRC=");
-      Debug.print(OneWire::crc8(data, 8), HEX);
-      Debug.println();
-#endif
+      dsDebugPrint(F(" CRC="));
+      dsDebugPrint(OneWire::crc8(data, 8), HEX);
+      dsDebugPrintln("");
       // convert the data to actual temperature
       unsigned int raw = (data[1] << 8) | data[0];
       if (type_s) {
@@ -128,15 +117,15 @@ void oneWireDoEvents() {
         // default is 12 bit resolution, 750 ms conversion time
       }
       float celsius = (float)raw / 16.0;
-      Debug.print("ds: ROM =");
+      Debug.print(F("ds: ROM ="));
       for(byte i = 0; i < 8; i++) {
         Debug.write(' ');
         Debug.print(dsAddr[i], HEX);
       }
-      Debug.print(" Temperature = ");
+      Debug.print(F(" Temperature = "));
       Debug.print(celsius);
-      Debug.print(" C ");
-      dsState = 0;
+      Debug.println(F(" C "));
+      dsStateChange(&dsState, dsStateSEARCH);
       for (uint8_t i = 0; i < (sizeof(owAddr) / 9) - 1; i++) {
         boolean OK = true;
         for (uint8_t b = 0; b < 8; i++) {
@@ -149,18 +138,76 @@ void oneWireDoEvents() {
           if (Values[i].ValueX10 != celsius * 10) {
             Values[i].ValueX10 = celsius * 10;
             Values[i].Changed = true;
-            Debug.print(" Zugewiesen an ");           
+            Debug.print(F(" Zugewiesen an "));           
             Debug.println(i); 
           }
           return;
         }
       }  
-      Debug.println("Addresse des Sensor nicht bekannt"); 
-      waitSince = (uint16_t)millis();
+      Debug.println(F("Addresse des Sensor nicht bekannt")); 
     }
     break;
   }
 }
+
+void dsStateChange (uint8_t *oldState, uint8_t newState) {
+#ifdef dsDebug
+  Debug.print(F("ds: State "));
+  dsStatePrintName(*oldState);
+  Debug.print(F("->"));
+  dsStatePrintName(newState);
+  Debug.print(F("\n"));
+#endif
+  *oldState=newState;
+}
+void dsStatePrintName (uint8_t State) {
+  switch (State) {
+  case dsStateSEARCH       : 
+    Debug.print(F("SEARCH")); 
+    break;
+  case dsStateWAIT_BEFORE_RESET  : 
+    Debug.print(F("WAIT_BEFORE_RESET")); 
+    break;
+  case dsStateWAIT_AFTER_RESET : 
+    Debug.print(F("WAIT_AFTER_RESET")); 
+    break;
+  case dsStateSELECT           : 
+    Debug.print(F("SELECT")); 
+    break;
+  case dsStateREAD             : 
+    Debug.print(F("READ")); 
+    break;
+  }
+
+}
+
+void dsDebugPrint (char *Msg) {
+#ifdef dsDebug
+  Debug.print(Msg);
+#endif
+}
+void dsDebugPrintln (char *Msg) {
+#ifdef dsDebug
+  Debug.print(Msg);
+#endif
+}
+void dsDebugPrint (const __FlashStringHelper* Msg) {
+#ifdef dsDebug
+  Debug.print(Msg);
+#endif
+}
+void dsDebugPrintln (const __FlashStringHelper* Msg) {
+#ifdef dsDebug
+  Debug.print(Msg);
+#endif
+}
+void dsDebugPrint (byte Msg, int Type) {
+#ifdef dsDebug
+  Debug.print(Msg, Type);
+#endif
+}
+
+
 
 
 

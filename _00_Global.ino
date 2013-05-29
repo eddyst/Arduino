@@ -15,10 +15,11 @@ typedef struct {
 #define _ThermeUmschaltventilTaster  8
 #define _ThermeBrennerLeistung       9
 #define _HKVorlauf                  10
-#define _HKVorlaufGemischt          11
-#define _HKRuecklauf                12
-#define _HKRuecklaufMieter          13
-#define _HKRuecklaufSteier          14
+#define _HKVorlaufValue             11
+#define _HKVorlaufGemischt          12
+#define _HKRuecklauf                13
+#define _HKRuecklaufMieter          14
+#define _HKRuecklaufSteier          15
 
 prog_char FHEM_ThermeKesselTempSoll       [] myPROGMEM =  "ThermeKesselTempSoll";
 prog_char FHEM_ThermeKesselTempIst        [] myPROGMEM =  "ThermeKesselTempIst";
@@ -31,6 +32,7 @@ prog_char FHEM_ThermeUmschaltventilOpto   [] myPROGMEM =  "ThermeUmschaltventilO
 prog_char FHEM_ThermeUmschaltventilTaster [] myPROGMEM =  "ThermeUmschaltventilTaster";
 prog_char FHEM_ThermeBrennerLeistung      [] myPROGMEM =  "ThermeBrennerLeistung";
 prog_char FHEM_HKVorlauf                  [] myPROGMEM =  "HKVorlauf";
+prog_char FHEM_HKVorlaufValue             [] myPROGMEM =  "HKVorlaufValue";
 prog_char FHEM_HKVorlaufGemischt          [] myPROGMEM =  "HKVorlaufGemischt";
 prog_char FHEM_HKRuecklauf                [] myPROGMEM =  "HKRuecklauf";
 prog_char FHEM_HKRuecklaufMieter          [] myPROGMEM =  "HKRuecklaufMieter";
@@ -48,6 +50,7 @@ data Values[] = {{ 0, ValueUnknown, FHEM_ThermeKesselTempSoll       }, // 0
                  { 0, ValueUnknown, FHEM_ThermeUmschaltventilTaster }, 
                  { 0, ValueUnknown, FHEM_ThermeBrennerLeistung      }, 
                  { 0, ValueUnknown, FHEM_HKVorlauf                  }, //10
+                 { 0, ValueUnknown, FHEM_HKVorlaufValue             }, 
                  { 0, ValueUnknown, FHEM_HKVorlaufGemischt          }, 
                  { 0, ValueUnknown, FHEM_HKRuecklauf                }, 
                  { 0, ValueUnknown, FHEM_HKRuecklaufMieter          }, 

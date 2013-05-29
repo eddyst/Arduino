@@ -10,35 +10,61 @@ void hkInit(){
 
 void   HKControlDoEvents() {
   //HKMischerRichtungPin  HKMischerBewegenPin  HKSollTempVorgabe
-  if (_HKVorlaufGemischt != -128) { //Wenn die Vorlauftemperatur nicht gesetzt wurde können wir nichts regeln
-    if (_HKVorlaufGemischt > 60) {  // Zudrehen!!!!
-              Debug.println ("HK: ! >60 = soKALTwiesGEHT");
+  if (Values[_HKVorlaufGemischt].ValueX10 != ValueUnknown) { //Wenn die Vorlauftemperatur nicht gesetzt wurde können wir nichts regeln
+    if (Values[_HKVorlaufGemischt].ValueX10 > 600) {  // Zudrehen!!!!
+      Debug.println ("HK: ! >600 = soKALTwiesGEHT");
       digitalWrite (HKMischerRichtungPin, LOW );
       digitalWrite (HKMischerBewegenPin , HIGH);
     }     
     else {
       static uint32_t lastMove;
       if (millis() - lastMove > 20000) {                         // Wenn min ? Sekunden seit letzter Bewegung
-        if (_HKVorlaufGemischt > HKSollTempVorgabe + 5 ) {         // Bei 5 C° Überschreitung
-          Debug.println ("HK: kälter");
-          digitalWrite (HKMischerRichtungPin, LOW );             // Zudrehen - aber nur ein bissel
-          digitalWrite (HKMischerBewegenPin , HIGH);
-          delay(500);
-          digitalWrite (HKMischerBewegenPin , LOW);
-          lastMove=millis();  
+        //Wir haben keine genaue Info zur Ventilpossition deswegen zählen wir hilfsweise bei jeder Bewegung die Schritte in eine Richtung
+        if (Values[_HKVorlaufGemischt].ValueX10 > HKSollTempVorgabe + 5 ) {         // Bei 5 C° Überschreitung
+          Debug.println (F("HK: kälter"));
+          if (Values[_HKVorlaufValue].ValueX10 < -20) { 
+            //ToDo: Ende von Wärme anfordern
+
+          } 
+          else{
+            digitalWrite (HKMischerRichtungPin, LOW );             // Zudrehen - aber nur ein bissel
+            digitalWrite (HKMischerBewegenPin , HIGH);
+            delay(500);
+            digitalWrite (HKMischerBewegenPin , LOW);
+            if (Values[_HKVorlaufValue].ValueX10 >  0) 
+              Values[_HKVorlaufValue].ValueX10 = -1;
+            else
+              Values[_HKVorlaufValue].ValueX10 --;
+            Values[_HKVorlaufValue].Changed = 1;
+            lastMove=millis();  
+          }
         } 
-        else if (_HKVorlaufGemischt < HKSollTempVorgabe - 2 ){
-          Debug.println ("HK: wärmer");
-          digitalWrite (HKMischerRichtungPin, HIGH );
-          digitalWrite (HKMischerBewegenPin , HIGH);
-          delay(500);
-          digitalWrite (HKMischerBewegenPin , LOW);  
-          lastMove=millis();  
+        else if (Values[_HKVorlaufGemischt].ValueX10 < HKSollTempVorgabe - 2 ){
+          Debug.println (F("HK: wärmer"));
+          if (Values[_HKVorlaufValue].ValueX10 > 20) { 
+            //ToDo: Wärme anfordern
+
+          } 
+          else{
+            digitalWrite (HKMischerRichtungPin, HIGH );
+            digitalWrite (HKMischerBewegenPin , HIGH);
+            delay(500);
+            digitalWrite (HKMischerBewegenPin , LOW);  
+            if (Values[_HKVorlaufValue].ValueX10 <  0) 
+              Values[_HKVorlaufValue].ValueX10 = 1;
+            else
+              Values[_HKVorlaufValue].ValueX10 ++;
+            Values[_HKVorlaufValue].Changed = 1;
+            lastMove=millis();  
+          }
         }
       }
     }
   }
 }
+
+
+
 
 
 

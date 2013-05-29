@@ -8,8 +8,7 @@
 Clock g_Clock;
 
 #include <avr/pgmspace.h>
-#undef PROGMEM
-#define PROGMEM __attribute__((section(".progmem.data")))
+#define myPROGMEM __attribute__((section(".progmem.data")))
 
 void setup() {
   Debug.begin( 57600);
@@ -20,7 +19,8 @@ void setup() {
   hkInit();
   pumpenInit();
   g_Clock.SetTimezoneOffset(1,0); // Setup the clock. In Germany we are 1 hours ahead of GMT 
-    Debug.println( freeMemory());
+  Debug.print("freeMemory  = "); Debug.println( freeMemory());
+//  ATS_GetFreeMemory();
 }
 
 void loop() {

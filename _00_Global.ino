@@ -20,21 +20,21 @@ typedef struct {
 #define _HKRuecklaufMieter          13
 #define _HKRuecklaufSteier          14
 
-prog_char FHEM_ThermeKesselTempSoll       [] PROGMEM =  "ThermeKesselTempSoll";
-prog_char FHEM_ThermeKesselTempIst        [] PROGMEM =  "ThermeKesselTempIst";
-prog_char FHEM_ThermeVorlaufTempSoll      [] PROGMEM =  "ThermeVorlaufTempSoll";
-prog_char FHEM_ThermeRuecklaufTemp        [] PROGMEM =  "ThermeRuecklaufTemp";
-prog_char FHEM_ThermeSpeicherTemp         [] PROGMEM =  "ThermeSpeicherTemp";
-prog_char FHEM_ThermeAussenTemp           [] PROGMEM =  "ThermeAussenTemp";
-prog_char FHEM_ThermeBetriebsart          [] PROGMEM =  "ThermeBetriebsart";
-prog_char FHEM_ThermeUmschaltventilOpto   [] PROGMEM =  "ThermeUmschaltventilOpto";
-prog_char FHEM_ThermeUmschaltventilTaster [] PROGMEM =  "ThermeUmschaltventilTaster";
-prog_char FHEM_ThermeBrennerLeistung      [] PROGMEM =  "ThermeBrennerLeistung";
-prog_char FHEM_HKVorlauf                  [] PROGMEM =  "HKVorlauf";
-prog_char FHEM_HKVorlaufGemischt          [] PROGMEM =  "HKVorlaufGemischt";
-prog_char FHEM_HKRuecklauf                [] PROGMEM =  "HKRuecklauf";
-prog_char FHEM_HKRuecklaufMieter          [] PROGMEM =  "HKRuecklaufMieter";
-prog_char FHEM_HKRuecklaufSteier          [] PROGMEM =  "HKRuecklaufSteier";
+prog_char FHEM_ThermeKesselTempSoll       [] myPROGMEM =  "ThermeKesselTempSoll";
+prog_char FHEM_ThermeKesselTempIst        [] myPROGMEM =  "ThermeKesselTempIst";
+prog_char FHEM_ThermeVorlaufTempSoll      [] myPROGMEM =  "ThermeVorlaufTempSoll";
+prog_char FHEM_ThermeRuecklaufTemp        [] myPROGMEM =  "ThermeRuecklaufTemp";
+prog_char FHEM_ThermeSpeicherTemp         [] myPROGMEM =  "ThermeSpeicherTemp";
+prog_char FHEM_ThermeAussenTemp           [] myPROGMEM =  "ThermeAussenTemp";
+prog_char FHEM_ThermeBetriebsart          [] myPROGMEM =  "ThermeBetriebsart";
+prog_char FHEM_ThermeUmschaltventilOpto   [] myPROGMEM =  "ThermeUmschaltventilOpto";
+prog_char FHEM_ThermeUmschaltventilTaster [] myPROGMEM =  "ThermeUmschaltventilTaster";
+prog_char FHEM_ThermeBrennerLeistung      [] myPROGMEM =  "ThermeBrennerLeistung";
+prog_char FHEM_HKVorlauf                  [] myPROGMEM =  "HKVorlauf";
+prog_char FHEM_HKVorlaufGemischt          [] myPROGMEM =  "HKVorlaufGemischt";
+prog_char FHEM_HKRuecklauf                [] myPROGMEM =  "HKRuecklauf";
+prog_char FHEM_HKRuecklaufMieter          [] myPROGMEM =  "HKRuecklaufMieter";
+prog_char FHEM_HKRuecklaufSteier          [] myPROGMEM =  "HKRuecklaufSteier";
 
 #define ValueUnknown -10000
 data Values[] = {{ 0, ValueUnknown, FHEM_ThermeKesselTempSoll       }, // 0

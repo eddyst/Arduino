@@ -38,6 +38,8 @@ prog_char FHEM_HKRuecklauf                [] myPROGMEM =  "HKRuecklauf";
 prog_char FHEM_HKRuecklaufMieter          [] myPROGMEM =  "HKRuecklaufMieter";
 prog_char FHEM_HKRuecklaufSteier          [] myPROGMEM =  "HKRuecklaufSteier";
 
+uint8_t  owArray[] = { _HKVorlauf, _HKVorlaufGemischt, _HKRuecklauf, _HKRuecklaufMieter, _HKRuecklaufSteier };
+
 #define ValueUnknown -10000
 data Values[] = {{ 0, ValueUnknown, FHEM_ThermeKesselTempSoll       }, // 0
                  { 0, ValueUnknown, FHEM_ThermeKesselTempIst        }, 
@@ -57,12 +59,6 @@ data Values[] = {{ 0, ValueUnknown, FHEM_ThermeKesselTempSoll       }, // 0
                  { 0, ValueUnknown, FHEM_HKRuecklaufSteier          }  
                 };
 
-uint8_t  owAddr[][9] = { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 10},
-                         { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 11},
-                         { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 12},
-                         { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 13},
-                         { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 14} };
-
 uint8_t  ThermeVorlaufTempVorgabe = 50; //ToDo: Abfragen und bei Änderung KesselSollTempVorgabeRechnen();
 uint8_t  HKSollTempVorgabe     = 45; //ToDo: Abfragen
 
@@ -72,15 +68,26 @@ uint8_t  HKSollTempVorgabe     = 45; //ToDo: Abfragen
          #define ThermeBetriebsartDauerndReduziert 3
          #define ThermeBetriebsartDauerndNormal    4
 
-uint8_t Menu = 0;
-uint8_t EthState = 0;
-/*
-String toHex (uint8_t value) {
-  if ( value < 16)
-    return String("0") + String(value, HEX);
-  else
-    return String(value, HEX);
-}
-*/
+char buffer[30]; //Allgemeiner Buffer 
 
+
+// Converts an ASCII character to a numeric value.
+// Returns true if the character is numeric, returns
+// false for all other characters.
+// Utilises the fact that char type is just a byte.
+// Thus '7' (ASCII 55) minus '0' (ASCII 48) equals 7.
+boolean parseHexChar(const char& input, uint8_t& output) {
+  if(input >= '0' && input <= '9') {
+    output = input - '0';
+    return true; 
+  } else if(input >= 'A' && input <= 'F'){
+    output = input - 'A' + 10;
+    return true; 
+  } else if(input >= 'a' && input <= 'f'){
+    output = input - 'a' + 10;
+    return true; 
+  }
+  output = 0;
+  return false;
+}
 

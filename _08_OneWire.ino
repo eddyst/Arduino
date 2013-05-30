@@ -27,7 +27,7 @@ void oneWireDoEvents() {
     }
     break;
   case dsStateWAIT_BEFORE_RESET:
-    if ((uint16_t)millis() - waitSince >= 10000) {
+    if ((uint16_t)millis() - waitSince >= 20000) {
       dsDebugPrint(F("ds: reset_search"));
       ds.reset_search();
 
@@ -85,6 +85,7 @@ void oneWireDoEvents() {
         break;
       default:
         Debug.println(F("Device is not a DS18x20 family device."));
+        dsStateChange(&dsState, dsStateSEARCH);
         return;
       } 
       // Read Data
@@ -126,20 +127,30 @@ void oneWireDoEvents() {
       Debug.print(celsius);
       Debug.println(F(" C "));
       dsStateChange(&dsState, dsStateSEARCH);
-      for (uint8_t i = 0; i < (sizeof(owAddr) / 9) - 1; i++) {
+      for (uint8_t i = 0; i < sizeof(owArray); i++) {
         boolean OK = true;
-        for (uint8_t b = 0; b < 8; i++) {
-          if (dsAddr[b] != owAddr [i][b]) {
+        dsDebugPrint(F(" i = "));
+        dsDebugPrint(i, DEC);        
+        for (uint8_t b = 0; b < 8; b++) {
+          dsDebugPrint(F("   b  = "));
+          dsDebugPrint(b,DEC);
+          uint8_t ee = EEPROM.read(i * 8 + b);
+          dsDebugPrint(F("   ee( "));
+          dsDebugPrint(i * 8 + b,DEC);
+          dsDebugPrint(F(" ) = "));
+          dsDebugPrint(ee,DEC);
+          if (dsAddr[b] != ee) {
+            dsDebugPrintln(F(" --- NOT EQUAL --- "));
             OK = false;
             break;
           }
         }
         if (OK) {
-          if (Values[i].ValueX10 != celsius * 10) {
-            Values[i].ValueX10 = celsius * 10;
-            Values[i].Changed = true;
+          if (Values[owArray[i]].ValueX10 != celsius * 10) {
+            Values[owArray[i]].ValueX10 = celsius * 10;
+            Values[owArray[i]].Changed = true;
             Debug.print(F(" Zugewiesen an "));           
-            Debug.println(i); 
+            Debug.println(owArray[i]); 
           }
           return;
         }

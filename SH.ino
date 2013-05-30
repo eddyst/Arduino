@@ -1,6 +1,7 @@
 //#define DebugOnNano
 #define Debug Serial
 
+#include <EEPROM.h>
 //#include <ByteBuffer.h>
 //#include <PString.h>
 #include <MemoryFree.h>

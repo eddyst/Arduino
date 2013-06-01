@@ -8,9 +8,8 @@ Servo servoSolar;  // create servo object to control a servo a maximum of eight 
 
 void   pumpenInit() {
   servoSolar.attach(PumpeSolarServoPwmPin);  // attaches the servo on pin 9 to the servo object 
-  pinMode     (PumpeSolarServoEnabledPin, OUTPUT);  // Zum initialisieren Mischer erstmal zu drehen 
+  pinMode     (PumpeSolarServoEnabledPin, OUTPUT);   
   digitalWrite(PumpeSolarServoEnabledPin, LOW   );
-
 }
 
 void pumpenDoEvents (){
@@ -21,8 +20,13 @@ void pumpenDoEvents (){
       pos = 0; 
     else
       pos++;
+    if (pumpLogLevel > 0) {
+      Debug.print(F("pump: Pos = "));
+      Debug.println(pos);
+    }
     servoSolar.write(pos);
     lastMove = millis();
   }
 }
+
 

@@ -12,7 +12,7 @@ void   HKControlDoEvents() {
   //HKMischerRichtungPin  HKMischerBewegenPin  HKSollTempVorgabe
   if (Values[_HKVorlaufGemischt].ValueX10 != ValueUnknown) { //Wenn die Vorlauftemperatur nicht gesetzt wurde können wir nichts regeln
     if (Values[_HKVorlaufGemischt].ValueX10 > 600) {  // Zudrehen!!!!
-      Debug.println ("HK: ! >600 = soKALTwiesGEHT");
+      if (hkLogLevel > 0) Debug.println ("HK: ! >600 = soKALTwiesGEHT");
       digitalWrite (HKMischerRichtungPin, LOW );
       digitalWrite (HKMischerBewegenPin , HIGH);
     }     
@@ -21,7 +21,7 @@ void   HKControlDoEvents() {
       if (millis() - lastMove > 20000) {                         // Wenn min ? Sekunden seit letzter Bewegung
         //Wir haben keine genaue Info zur Ventilpossition deswegen zählen wir hilfsweise bei jeder Bewegung die Schritte in eine Richtung
         if (Values[_HKVorlaufGemischt].ValueX10 > HKSollTempVorgabe + 5 ) {         // Bei 5 C° Überschreitung
-          Debug.println (F("HK: kälter"));
+          if (hkLogLevel > 0) Debug.println (F("HK: kälter"));
           if (Values[_HKVorlaufValue].ValueX10 < -20) { 
             //ToDo: Ende von Wärme anfordern
 
@@ -40,7 +40,7 @@ void   HKControlDoEvents() {
           }
         } 
         else if (Values[_HKVorlaufGemischt].ValueX10 < HKSollTempVorgabe - 2 ){
-          Debug.println (F("HK: wärmer"));
+          if (hkLogLevel > 0) Debug.println (F("HK: wärmer"));
           if (Values[_HKVorlaufValue].ValueX10 > 20) { 
             //ToDo: Wärme anfordern
 

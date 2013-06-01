@@ -1,5 +1,6 @@
 #include <Vitodens.h>
-Vitodens Vito(&Serial1, &Debug);
+Vitodens Vito(&Serial1);
+//Vitodens Vito(&Serial1, &Debug);
 
 void vitoInit(){
   Vito.attach(VitoDebugMsg);
@@ -85,9 +86,9 @@ void vitoDoEvents () {
          break; 
          */
       default: 
-        Debug.println();
-        Debug.print("Unbekannte VitoAdr:");
-        Debug.println(VitoAdr);
+        if (vitoLogLevel > 0) Debug.println();
+        if (vitoLogLevel > 0) Debug.print("Unbekannte VitoAdr:");
+        if (vitoLogLevel > 0) Debug.println(VitoAdr);
       }
     }
   }

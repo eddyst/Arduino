@@ -1,26 +1,26 @@
-#define HappyTempPin 1
-#define WWVentilPin 2
+#define HappyTempPin 36
+#define WWVentilPin 38
 #define WWVentilStellungWarmwasser HIGH
-#define WWVentilSperrenPin 3
-#define ExternAnfordernPin 4
-#define ThermeVorlaufTempVorgabePin A1
+#define WWVentilSperrenPin 40
+#define ExternAnfordernPin 42
+#define ThermeVorlaufTempVorgabePin 44
 
 uint8_t WWControlState = 0;
 
 void WarmwasserBegin(){
-  Debug.println ("WarmwasserBegin()");
+  if (wwLogLevel > 0) Debug.println ("WarmwasserBegin()");
   digitalWrite(HappyTempPin, HIGH);
   WWControlState=1;
 }
 
 void WarmwasserEnde(){
-  Debug.println ("WarmwasserEnde()");
+  if (wwLogLevel > 0) Debug.println ("WarmwasserEnde()");
   digitalWrite(HappyTempPin, LOW);
   WWControlState=0;
 }
 
 void ThermeVorlaufTempVorgabeRechnen() {
-  Debug.println ("ThermeVorlaufTempVorgabeRechnen()");
+  if (wwLogLevel > 0) Debug.println ("\nThermeVorlaufTempVorgabeRechnen()");
   if (WWControlState == 4) {
     WWControlState = 3;
   }
@@ -44,11 +44,11 @@ void   WWControlDoEvents() {
     if (Values[_ThermeUmschaltventilTaster].ValueX10 != WWVentilValue) {
       Values[_ThermeUmschaltventilTaster].ValueX10 = WWVentilValue;
       Values[_ThermeUmschaltventilTaster].Changed = 1;
-      Debug.println ("ThermeUmschaltventilTaster Zugewiesen");
+      if (wwLogLevel > 1) Debug.println ("ThermeUmschaltventilTaster Zugewiesen");
     }
     if (WWVentilValue != WWVentilStellungWarmwasser) { // Wenn das HappyTemp-Relay nicht geschalten ist oder der Taster nicht Stellung Warmwasser erkennt
       digitalWrite(WWVentilSperrenPin,LOW);            // den Schrittmotor freigeben
-      Debug.println ("WWVentilSperrenPin,LOW");
+      if (wwLogLevel > 1) Debug.println ("WWVentilSperrenPin,LOW");
       WWControlState = 1;                              // und Status auf 1 zurücksetzen
     } 
     else {
@@ -59,23 +59,23 @@ void   WWControlDoEvents() {
         }
         break;
       case 3:                                          // ThermeVorlaufTempSollX10 durch anpassung der PWM gemäß ThermeVorlaufTempVorgabe nachführen   
-        Debug.print ("WWControlState=3, Setze ThermeVorlaufTempVorgabeValue auf ");
+        if (wwLogLevel > 1) Debug.print ("WWControlState=3, Setze ThermeVorlaufTempVorgabeValue auf ");
         static uint8_t  ThermeVorlaufTempVorgabeValue = 0;       
         ThermeVorlaufTempVorgabeValue = ThermeVorlaufTempVorgabeValue + (ThermeVorlaufTempVorgabe * 10 - Values[_ThermeVorlaufTempSoll].ValueX10) * 255 /1000; // ThermeVorlaufTempVorgabeValue berechnen
-        Debug.println (ThermeVorlaufTempVorgabeValue);
+        if (wwLogLevel > 1) Debug.println (ThermeVorlaufTempVorgabeValue);
         analogWrite( ThermeVorlaufTempVorgabePin, ThermeVorlaufTempVorgabeValue);                                                        // PWM setzen
         lastThermeVorlaufTempVorgabeCheck = (uint16_t)millis();                                                                                 // Wartezeit initialisieren
         WWControlState = 4;                                                                                                        // und in Status4 wechseln
         break;
       case 1:                                          // Der Taster könnte aberschließen bevor der Motor steht
         WWVentilOKSince = (uint16_t)millis();                      // deswegen beginnen wir eine Wartezeit
-        Debug.println ("WWVentilOKSince=(uint16_t)millis()");
+        if (wwLogLevel > 1) Debug.println ("WWVentilOKSince=(uint16_t)millis()");
         WWControlState = 2;
         break;
       case 2:                                            
         if ((uint16_t)millis() - WWVentilOKSince > 3000){            // Wartezeit ist abgelaufen
           digitalWrite( WWVentilSperrenPin,HIGH);       // das Ventil sperren
-          Debug.println ( "WWVentilSperrenPin,HIGH");
+          if (wwLogLevel > 1) Debug.println ( "WWVentilSperrenPin,HIGH");
           WWControlState = 3;
         }
       }

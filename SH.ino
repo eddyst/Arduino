@@ -1,7 +1,7 @@
 #define  ethLogLevel 1   //0 nix, 1 Fehlermeldungen, 2 Ein/Ausgehender Datenverkehr, 3 AlleInfos
 #define vitoLogLevel 1
 #define   owLogLevel 1
-#define   wwLogLevel 1
+#define   wwLogLevel 6
 #define   hkLogLevel 1
 #define pumpLogLevel 1
 
@@ -36,9 +36,9 @@ void loop() {
   vitoDoEvents();
   oneWireDoEvents();
   WWControlDoEvents();
-  HKControlDoEvents();
-  pumpenDoEvents();
-  g_Clock.Maintain();
+//  HKControlDoEvents();
+//  pumpenDoEvents();
+//  g_Clock.Maintain();
 }
 
 

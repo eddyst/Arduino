@@ -29,9 +29,7 @@ void wwInit() {
   pinMode     (HappyTempPin, OUTPUT);
   digitalWrite(HappyTempPin, LOW);
 
-  pinMode     (WWVentilPin , INPUT_PULLUP); //Unlike pinMode(INPUT), there is no pull-down resistor necessary. An internal 
-  //20K-ohm resistor is pulled to 5V. This configuration causes the input to 
-  //read HIGH when the switch is open, and LOW when it is closed. 
+  pinMode     (WWVentilPin , INPUT); 
   pinMode     (ThermeVorlaufTempVorgabePin, OUTPUT);
   analogWrite (ThermeVorlaufTempVorgabePin, 0     );
 }
@@ -44,12 +42,16 @@ void   WWControlDoEvents() {
     if (Values[_ThermeUmschaltventilTaster].ValueX10 != WWVentilValue) {
       Values[_ThermeUmschaltventilTaster].ValueX10 = WWVentilValue;
       Values[_ThermeUmschaltventilTaster].Changed = 1;
-      if (wwLogLevel > 1) Debug.println ("ThermeUmschaltventilTaster Zugewiesen");
+      if (wwLogLevel > 1) {
+        Debug.println ( F("ThermeUmschaltventilTaster = "));
+        Debug.println ( WWVentilValue);
+        Debug.println ( F( "Zugewiesen"));
+      }
     }
     if (WWVentilValue != WWVentilStellungWarmwasser) { // Wenn das HappyTemp-Relay nicht geschalten ist oder der Taster nicht Stellung Warmwasser erkennt
-      digitalWrite(WWVentilSperrenPin,LOW);            // den Schrittmotor freigeben
-      if (wwLogLevel > 1) Debug.println ("WWVentilSperrenPin,LOW");
-      WWControlState = 1;                              // und Status auf 1 zurücksetzen
+      if (WWControlState != 2) {
+        WWControlState = 1;                              // und Status auf 1 zurücksetzen
+      }
     } 
     else {
       switch (WWControlState) {                        // Ventil steht richtig
@@ -59,29 +61,39 @@ void   WWControlDoEvents() {
         }
         break;
       case 3:                                          // ThermeVorlaufTempSollX10 durch anpassung der PWM gemäß ThermeVorlaufTempVorgabe nachführen   
-        if (wwLogLevel > 1) Debug.print ("WWControlState=3, Setze ThermeVorlaufTempVorgabeValue auf ");
         static uint8_t  ThermeVorlaufTempVorgabeValue = 0;       
         ThermeVorlaufTempVorgabeValue = ThermeVorlaufTempVorgabeValue + (ThermeVorlaufTempVorgabe * 10 - Values[_ThermeVorlaufTempSoll].ValueX10) * 255 /1000; // ThermeVorlaufTempVorgabeValue berechnen
-        if (wwLogLevel > 1) Debug.println (ThermeVorlaufTempVorgabeValue);
         analogWrite( ThermeVorlaufTempVorgabePin, ThermeVorlaufTempVorgabeValue);                                                        // PWM setzen
+        if (wwLogLevel > 1) {
+          Debug.print ("WWControlState=3, Setze ThermeVorlaufTempVorgabeValue auf ");
+          Debug.println (ThermeVorlaufTempVorgabeValue);
+        }
         lastThermeVorlaufTempVorgabeCheck = (uint16_t)millis();                                                                                 // Wartezeit initialisieren
         WWControlState = 4;                                                                                                        // und in Status4 wechseln
         break;
-      case 1:                                          // Der Taster könnte aberschließen bevor der Motor steht
+      case 1:                                                      // Der Taster könnte aberschließen bevor der Motor steht
+        digitalWrite(WWVentilSperrenPin, LOW); // den Schrittmotor freigeben
         WWVentilOKSince = (uint16_t)millis();                      // deswegen beginnen wir eine Wartezeit
-        if (wwLogLevel > 1) Debug.println ("WWVentilOKSince=(uint16_t)millis()");
+        if (wwLogLevel > 1) {
+          Debug.println( F( "WWVentilSperrenPin,LOW"));
+          Debug.print  ( (uint16_t)millis());
+          Debug.print  ( F( ": WWVentilOKSince=")); 
+          Debug.println( WWVentilOKSince);
+        }
         WWControlState = 2;
         break;
       case 2:                                            
-        if ((uint16_t)millis() - WWVentilOKSince > 3000){            // Wartezeit ist abgelaufen
+        if ((uint16_t)millis() - WWVentilOKSince > 10000){            // Wartezeit ist abgelaufen
           digitalWrite( WWVentilSperrenPin,HIGH);       // das Ventil sperren
-          if (wwLogLevel > 1) Debug.println ( "WWVentilSperrenPin,HIGH");
+          if (wwLogLevel > 1) {Debug.print((uint16_t)millis());Debug.println( F(": WWVentilSperrenPin,HIGH"));}
           WWControlState = 3;
         }
       }
     }
   }
 }
+
+
 
 
 

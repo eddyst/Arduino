@@ -49,7 +49,7 @@ void ethDoEvents() {
               if (ethLogLevel > 2) Debug.write(ethInBuffer[i]);
             }
             if (ethInBufferCount > 6 //&& ethInBuffer[0] == '<'
-            && ethInBuffer[0] == 'O'
+              && ethInBuffer[0] == 'O'
               && ethInBuffer[1] == 'W'
               && ethInBuffer[2] == 'A' 
               && ethInBuffer[5] == '=' ) {
@@ -67,8 +67,9 @@ void ethDoEvents() {
                 else {
                   owArrayIndex+= digit;
                 }
-                uint8_t i = 6, a = 0, b = 0, Addr[7];
-                while(i < ethInBufferCount && b < 8) {
+                uint8_t i = 6, HexCharIndex = 0, AddrByteIndex = 0, Addr[7];
+                boolean AfterFirstChar = false;
+                while(i < ethInBufferCount && AddrByteIndex < 8) {
                   if (ethLogLevel > 2) {
                     Debug.print("  ethInBuffer[");
                     Debug.print(i);
@@ -76,54 +77,55 @@ void ethDoEvents() {
                     Debug.println(ethInBuffer[i]);
                   }
                   if (parseHexChar(ethInBuffer[i], digit)) {
-                    if(a > 1) {
-                      a = 0; 
-                      b++;
+                    AfterFirstChar=true;
+                    if(HexCharIndex > 1) {
+                      HexCharIndex = 0; 
+                      AddrByteIndex++;
                     }
                     if (ethLogLevel > 2) {
                       Debug.print("  digit = "); 
                       Debug.println(digit, DEC);
                     }
-                    switch (a++){
+                    switch (HexCharIndex++){
                     case 0:  
-                      Addr[b] = digit;                 
+                      Addr[AddrByteIndex] = digit;                 
                       break;
                     case 1:  
-                      Addr[b] *= 16;
-                      Addr[b] += digit;                 
+                      Addr[AddrByteIndex] *= 16;
+                      Addr[AddrByteIndex] += digit;                 
                       break;
                     }
                     if (ethLogLevel > 2) {
                       Debug.print("  Addr[");
-                      Debug.print(b);
+                      Debug.print(AddrByteIndex);
                       Debug.print("] = "); 
-                      Debug.print(Addr[b],DEC);
+                      Debug.print(Addr[AddrByteIndex],DEC);
                       Debug.print(" = "); 
-                      Debug.println(Addr[b],HEX);
+                      Debug.println(Addr[AddrByteIndex],HEX);
                     }
                   } 
                   else {
                     if (ethLogLevel > 2) Debug.println(F("  parseHexChar = false"));
-                    if (b > 0) {
-                      a = 0; 
-                      b++;
+                    if (AfterFirstChar) {
+                      HexCharIndex = 0; 
+                      AddrByteIndex++;
                     }
                   }
                   i++;
                 } 
-                if (ethLogLevel > 2) Debug.println(b);
-                if( b != 7) {if (ethLogLevel > 0) Debug.println(F("\neth: owAddr: Addresslänge stimmt nicht!")); }
+                if (ethLogLevel > 2) Debug.println(AddrByteIndex);
+                if( AddrByteIndex != 7) {if (ethLogLevel > 0) Debug.println(F("\neth: owAddr: Addresslänge stimmt nicht!")); }
                 else {
-                  for (a=0; a < 8; a++) {
-                    if (EEPROM.read(owArrayIndex * 8 + a) != Addr[a]){
+                  for (AddrByteIndex=0; AddrByteIndex < 8; AddrByteIndex++) {
+                    if (EEPROM.read( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex) != Addr[AddrByteIndex]){
                       if (ethLogLevel > 0) {
                         Debug.print(F("\neth:     Schreibe EEPROM(")); 
-                        Debug.print( owArrayIndex * 8 + a); 
+                        Debug.print( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex); 
                         Debug.print(F(", ")); 
-                        Debug.print( Addr[a], HEX); 
+                        Debug.print( Addr[AddrByteIndex], HEX); 
                         Debug.println(F(")")); 
                       }
-                      EEPROM.write(owArrayIndex * 8 + a, Addr[a]);
+                      EEPROM.write( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex, Addr[AddrByteIndex]);
                     }
                   }
                   if (ethLogLevel > 1) Debug.println(F("\neth: owAddr: OK"));
@@ -166,7 +168,7 @@ void ethDoEvents() {
       if (ethLogLevel > 0) Debug.println(F("\neth: connection failed"));
       if (connectionErrors++ > 200) {
         if (ethLogLevel > 0) Debug.println(F("eth: Reset in 10 Sec"));
-        //ToDo: ACHTUNFG das stöhrt den Offlinebetrieb -> evl. im EEprom merken das wir resettet haben und wenn das so ist nicht mehr resetten
+        //ToDo: ACHTUNG das stöhrt den Offlinebetrieb -> evl. im EEprom merken das wir resettet haben und wenn das so ist nicht mehr resetten
         //      Vielleicht reicht es auch nur dann zu resetten wenn schonmal eine Verbindung bestanden hat und die jetzt weg ist.
         delay(10000);
         asm volatile ("  jmp 0");  

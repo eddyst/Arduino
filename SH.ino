@@ -1,9 +1,11 @@
-#define  ethLogLevel 1   //0 nix, 1 Fehlermeldungen, 2 Ein/Ausgehender Datenverkehr, 3 AlleInfos
-#define vitoLogLevel 1
-#define   owLogLevel 1
-#define   wwLogLevel 6
-#define   hkLogLevel 1
-#define pumpLogLevel 1
+#define    ethLogLevel 1   //0 nix, 1 Fehlermeldungen, 2 Ein/Ausgehender Datenverkehr, 3 AlleInfos
+#define   allgLogLevel 1
+#define   vitoLogLevel 1
+#define     owLogLevel 1
+#define thermeLogLevel 1
+#define     hkLogLevel 1
+#define     wwLogLevel 1
+#define  solarLogLevel 1
 
 #define Debug Serial
 
@@ -20,25 +22,30 @@ Clock g_Clock;
 void setup() {
   Debug.begin( 57600);
   Debug.println( "Setup");
+  AllgInit();
   EthInit();
-  vitoInit();
-  wwInit();
-  hkInit();
-  pumpenInit();
+  VitoInit();
+  ThermeInit();
+  HKInit();
+  WWInit();
+//  SolarInit();
   g_Clock.SetTimezoneOffset(1,0); // Setup the clock. In Germany we are 1 hours ahead of GMT 
   Debug.print("freeMemory  = "); 
   Debug.println( freeMemory());
   //  ATS_GetFreeMemory();
+  
 }
 
 void loop() {
+  AllgDoEvents();
   ethDoEvents();
   vitoDoEvents();
   oneWireDoEvents();
-  WWControlDoEvents();
-//  HKControlDoEvents();
-//  pumpenDoEvents();
-//  g_Clock.Maintain();
+  ThermeDoEvents();
+  WWDoEvents();
+//  HKDoEvents();
+//  SolarDoEvents();
+  g_Clock.Maintain();
 }
 
 

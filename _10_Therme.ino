@@ -4,6 +4,7 @@
 #define ExternAnfordernPin          30
 #define ThermeVorlaufTempVorgabePin  4
 
+#define ThermeControlStateNotfallBetrieb                      0
 #define ThermeControlStateSolarBetriebInit                    1
 #define ThermeControlStateSolarBetriebWarteAufVentil          2
 #define ThermeControlStateSolarBetriebWarteAufWWbetrieb       3
@@ -73,6 +74,7 @@ void ThermeSolarbetriebEndet () {
   digitalWrite(ExternAnfordernPin         , LOW   );
   digitalWrite(ThermeVentilSperrenPin     , LOW   );
   digitalWrite(HappyTempPin               , LOW   );
+  ThermeControlState = ThermeControlStateNotfallBetrieb;
   if (thermeLogLevel > 0) Debug.println ("Therme: ThermeControlStateNotfallBetrieb");      
 }
 

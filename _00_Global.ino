@@ -13,39 +13,41 @@ typedef struct {
 #define _HKVorlaufValue              6
 
 #define _KollektorAusdehnung         7
-#define _KollektorWTRuecklauf        8
-#define _KollektorWTVorlauf          9        
+#define _KollektorStatus             8
+#define _KollektorWTRuecklauf        9
+#define _KollektorWTVorlauf         10        
 
-#define _SolarRuecklauf             10
-#define _SolarVorlauf               11
-#define _SolarWTRuecklauf           12
-#define _SolarWTVorlauf             13   
+#define _SolarRuecklauf             11
+#define _SolarStatus                12
+#define _SolarVorlauf               13
+#define _SolarWTRuecklauf           14
+#define _SolarWTVorlauf             15   
 
-#define _SpeicherA1                 14
-#define _SpeicherA2                 15
-#define _SpeicherA3                 16
-#define _SpeicherA4                 17
-#define _SpeicherA5                 18
+#define _SpeicherA1                 16
+#define _SpeicherA2                 17
+#define _SpeicherA3                 18
+#define _SpeicherA4                 19
+#define _SpeicherA5                 20
 
-#define _ThermeAussenTemp           19
-#define _ThermeBetriebsart          20
-#define _ThermeBrennerLeistung      21
-#define _ThermeKesselTempIst        22
-#define _ThermeKesselTempSoll       23
-#define _ThermeRuecklaufTemp        24
-#define _ThermeRuecklaufTempOpto    25
-#define _ThermeSpeicherTemp         26
-#define _ThermeUmschaltventilOpto   27
-#define _ThermeUmschaltventilTaster 28
-#define _ThermeVorlaufTemp          29
-#define _ThermeVorlaufTempSoll      30
+#define _ThermeAussenTemp           21
+#define _ThermeBetriebsart          22
+#define _ThermeBrennerLeistung      23
+#define _ThermeKesselTempIst        24
+#define _ThermeKesselTempSoll       25
+#define _ThermeRuecklaufTemp        26
+#define _ThermeRuecklaufTempOpto    27
+#define _ThermeSpeicherTemp         28
+#define _ThermeUmschaltventilOpto   29
+#define _ThermeUmschaltventilTaster 30
+#define _ThermeVorlaufTemp          31
+#define _ThermeVorlaufTempSoll      32
 
-#define _WWAnforderung              31
-#define _WWPumpeProzent             32
-#define _WWRuecklaufTemp            33
-#define _WWSpeicherTemp1            34
-#define _WWSpeicherTemp2            35
-#define _WWVorlaufTemp              36
+#define _WWAnforderung              33
+#define _WWPumpeProzent             34
+#define _WWRuecklaufTemp            35
+#define _WWSpeicherTemp1            36
+#define _WWSpeicherTemp2            37
+#define _WWVorlaufTemp              38
 
 uint8_t  owArray[] = { _HKRuecklaufTemp2, _HKRuecklaufTemp1Mieter, _HKRuecklaufTemp1Steier, _HKVorlaufTemp1, _HKVorlaufTemp2,
                        _KollektorAusdehnung,  _KollektorWTRuecklauf,_KollektorWTVorlauf,
@@ -63,10 +65,12 @@ prog_char FHEM_HKVorlaufTemp2             [] myPROGMEM =  "HKVorlaufTemp2";
 prog_char FHEM_HKVorlaufValue             [] myPROGMEM =  "HKVorlaufValue";
 
 prog_char FHEM_KollektorAusdehnung        [] myPROGMEM =  "KollektorAusdehnung";
+prog_char FHEM_KollektorStatus            [] myPROGMEM =  "KollektorStatus";
 prog_char FHEM_KollektorWTRuecklauf       [] myPROGMEM =  "KollektorWTRuecklauf";
 prog_char FHEM_KollektorWTVorlauf         [] myPROGMEM =  "KollektorWTVorlauf";
 
 prog_char FHEM_SolarRuecklauf             [] myPROGMEM =  "SolarRuecklauf";
+prog_char FHEM_SolarStatus                [] myPROGMEM =  "SolarStatus";
 prog_char FHEM_SolarVorlauf               [] myPROGMEM =  "SolarVorlauf";
 prog_char FHEM_SolarWTRuecklauf           [] myPROGMEM =  "SolarWTRuecklauf";
 prog_char FHEM_SolarWTVorlauf             [] myPROGMEM =  "SolarWTVorlauf";
@@ -108,43 +112,45 @@ data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
                  { 0, ValueUnknown, FHEM_HKVorlaufValue             }, 
 
                  { 0, ValueUnknown, FHEM_KollektorAusdehnung        }, 
+                 { 0, ValueUnknown, FHEM_KollektorStatus            }, 
                  { 0, ValueUnknown, FHEM_KollektorWTRuecklauf       }, 
-                 { 0, ValueUnknown, FHEM_KollektorWTVorlauf         }, 
+                 { 0, ValueUnknown, FHEM_KollektorWTVorlauf         }, //10
 
-                 { 0, ValueUnknown, FHEM_SolarRuecklauf             }, //10
+                 { 0, ValueUnknown, FHEM_SolarRuecklauf             }, 
+                 { 0, ValueUnknown, FHEM_SolarStatus                }, 
                  { 0, ValueUnknown, FHEM_SolarVorlauf               }, 
                  { 0, ValueUnknown, FHEM_SolarWTRuecklauf           }, 
-                 { 0, ValueUnknown, FHEM_SolarWTVorlauf             }, 
+                 { 0, ValueUnknown, FHEM_SolarWTVorlauf             }, //15
 
                  { 0, ValueUnknown, FHEM_SpeicherA1                 }, 
-                 { 0, ValueUnknown, FHEM_SpeicherA2                 }, //15
+                 { 0, ValueUnknown, FHEM_SpeicherA2                 }, 
                  { 0, ValueUnknown, FHEM_SpeicherA3                 }, 
                  { 0, ValueUnknown, FHEM_SpeicherA4                 }, 
-                 { 0, ValueUnknown, FHEM_SpeicherA5                 }, 
+                 { 0, ValueUnknown, FHEM_SpeicherA5                 }, //20
 
                  { 0, ValueUnknown, FHEM_ThermeAussenTemp           }, 
-                 { 0, ValueUnknown, FHEM_ThermeBetriebsart          }, //20
+                 { 0, ValueUnknown, FHEM_ThermeBetriebsart          }, 
                  { 0, ValueUnknown, FHEM_ThermeBrennerLeistung      }, 
                  { 0, ValueUnknown, FHEM_ThermeKesselTempIst        }, 
-                 { 0, ValueUnknown, FHEM_ThermeKesselTempSoll       },
+                 { 0, ValueUnknown, FHEM_ThermeKesselTempSoll       }, //25
                  { 0, ValueUnknown, FHEM_ThermeRuecklaufTemp        }, 
-                 { 0, ValueUnknown, FHEM_ThermeRuecklaufTempOpto    }, //25
+                 { 0, ValueUnknown, FHEM_ThermeRuecklaufTempOpto    }, 
                  { 0, ValueUnknown, FHEM_ThermeSpeicherTemp         }, 
                  { 0, ValueUnknown, FHEM_ThermeUmschaltventilOpto   }, 
-                 { 0, ValueUnknown, FHEM_ThermeUmschaltventilTaster }, 
+                 { 0, ValueUnknown, FHEM_ThermeUmschaltventilTaster }, //30
                  { 0, ValueUnknown, FHEM_ThermeVorlaufTemp          }, 
-                 { 0, ValueUnknown, FHEM_ThermeVorlaufTempSoll      }, //30 
+                 { 0, ValueUnknown, FHEM_ThermeVorlaufTempSoll      },  
                  
                  { 0, ValueUnknown, FHEM_WWAnforderung              }, 
                  { 0, ValueUnknown, FHEM_WWPumpeProzent             }, 
-                 { 0, ValueUnknown, FHEM_WWRuecklaufTemp            },
+                 { 0, ValueUnknown, FHEM_WWRuecklaufTemp            }, //35
                  { 0, ValueUnknown, FHEM_WWSpeicherTemp1            }, 
-                 { 0, ValueUnknown, FHEM_WWSpeicherTemp2            }, //35 
+                 { 0, ValueUnknown, FHEM_WWSpeicherTemp2            },  
                  { 0, ValueUnknown, FHEM_WWVorlaufTemp              }
                 };
 
 boolean  Solarbetrieb          = false;
-uint8_t  HKSollTempVorgabe     = 40; //ToDo: Abfragen
+uint8_t  HKSollTempVorgabe     = 30; //ToDo: Abfragen
 #define  HKHysterese              5
 uint8_t  WWSollTempVorgabe     = 45; //ToDo: Abfragen
 #define  WWHysterese              5

@@ -1,5 +1,5 @@
-#define PumpeWWAnPin             32 
-#define PumpeWWServoPwmPin       34
+#define PumpeWWAnPin             42 
+//#define PumpeWWServoPwmPin       34
 //#define PumpeWWServoEnabledPin 
 
 //#define PumpeWWServoPwmMin 30

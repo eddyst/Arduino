@@ -1,6 +1,6 @@
 #define OneWireBus1Pin 48
 #define OneWireBus2Pin 46
-#define dsDebug
+#define owDebug
 
 #include <OneWire.h>
 OneWire* owBus = NULL;
@@ -11,100 +11,100 @@ void oneWireInit() {
 }
 
 void oneWireDoEvents() {
-#define dsStateBUS_SELECT         0
-#define dsStateWAIT_BEFORE_RESET  1
-#define dsStateRESET_SEARCH       2
-#define dsStateWAIT_AFTER_RESET   3
-#define dsStateSEARCH             4
-#define dsStateSELECT             5
-#define dsStateREAD               6
-  static uint8_t dsState = dsStateBUS_SELECT;
-  static byte dsAddr[8];
+#define owStateBUS_SELECT         0
+#define owStateWAIT_BEFORE_RESET  1
+#define owStateRESET_SEARCH       2
+#define owStateWAIT_AFTER_RESET   3
+#define owStateSEARCH             4
+#define owStateSELECT             5
+#define owStateREAD               6
+  static uint8_t owState = owStateBUS_SELECT;
+  static byte owAddr[8];
   static uint32_t waitSince; 
-  switch (dsState) {
-  case dsStateBUS_SELECT:
+  switch (owState) {
+  case owStateBUS_SELECT:
     if (owBus == &owBus1){
       owBus = &owBus2;
-      if (owLogLevel > 1) Debug.println(F("  ow Bus2")); 
+      if (owLogLevel > 1) Debug.println(F("ow: Bus2")); 
     } 
     else {
       owBus = &owBus1;
-      if (owLogLevel > 1) Debug.println(F("  ow Bus1")); 
+      if (owLogLevel > 1) Debug.println(F(":ow Bus1")); 
       waitSince = millis();
-      dsStateChange(&dsState, dsStateWAIT_BEFORE_RESET);
+      owStateChange(&owState, owStateWAIT_BEFORE_RESET);
       return;
     }
-    dsStateChange(&dsState, dsStateRESET_SEARCH);
+    owStateChange(&owState, owStateRESET_SEARCH);
     break;
-  case dsStateWAIT_BEFORE_RESET:
+  case owStateWAIT_BEFORE_RESET:
     if (millis() - waitSince >= 20000) {
-      dsStateChange(&dsState, dsStateRESET_SEARCH);
+      owStateChange(&owState, owStateRESET_SEARCH);
     }
     break;
-  case dsStateRESET_SEARCH:
+  case owStateRESET_SEARCH:
     owBus->reset_search();
     waitSince = millis();
-    dsStateChange(&dsState, dsStateWAIT_AFTER_RESET);
+    owStateChange(&owState, owStateWAIT_AFTER_RESET);
     break;
-  case dsStateWAIT_AFTER_RESET:
+  case owStateWAIT_AFTER_RESET:
     if (millis() - waitSince >= 250) {
-      dsStateChange(&dsState, dsStateSEARCH);
+      owStateChange(&owState, owStateSEARCH);
     }
     break;
-  case dsStateSEARCH:
-    if ( !owBus->search( dsAddr)) {
-      dsStateChange(&dsState, dsStateBUS_SELECT);
+  case owStateSEARCH:
+    if ( !owBus->search( owAddr)) {
+      owStateChange(&owState, owStateBUS_SELECT);
       waitSince = millis();
     } 
     else {
-      dsStateChange(&dsState, dsStateSELECT);
+      owStateChange(&owState, owStateSELECT);
     }
     break;
-  case dsStateSELECT:
-    if (OneWire::crc8(dsAddr, 7) != dsAddr[7]) {
-      if (owLogLevel > 0) Debug.print(F("\nds: ROM ="));
+  case owStateSELECT:
+    if (OneWire::crc8(owAddr, 7) != owAddr[7]) {
+      if (owLogLevel > 0) Debug.print(F("\now: ROM ="));
       for(byte i = 0; i < 8; i++) {
         if (owLogLevel > 0) Debug.print(F(" "));
-        if (owLogLevel > 0) Debug.print(dsAddr[i], HEX);
+        if (owLogLevel > 0) Debug.print(owAddr[i], HEX);
       }
-      if (owLogLevel > 0) Debug.println(F(" CRC is not valid!"));
-      dsStateChange(&dsState, dsStateSEARCH);
+      if (owLogLevel > 0) Debug.println(F(" Addr-CRC is not valid!"));
+      owStateChange(&owState, owStateSEARCH);
       return;
     }
 
     owBus->reset();
-    owBus->select(dsAddr);
+    owBus->select(owAddr);
     owBus->write(0x44,1);         // start conversion, with parasite power on at the end
 
     waitSince = millis();
-    dsStateChange(&dsState, dsStateREAD);
+    owStateChange(&owState, owStateREAD);
     break;
-  case dsStateREAD:
+  case owStateREAD:
     if (millis() - waitSince >= 1000) {  // maybe 750ms is enough, maybe not
-      // we might do a ds.depower() here, but the reset will take care of it.
+      // we might do a ow.depower() here, but the reset will take care of it.
       byte present = 0;
       present = owBus->reset();
-      owBus->select(dsAddr);    
+      owBus->select(owAddr);    
       owBus->write(0xBE);         // Read Scratchpad
 
       // the first ROM byte indicates which chip
       byte type_s;
-      switch (dsAddr[0]) {
+      switch (owAddr[0]) {
       case 0x10:
-        if (owLogLevel > 1) Debug.print(F("  Chip = DS18S20"));  // or old DS1820
+        if (owLogLevel > 2) Debug.print(F("  Chip = DS18S20"));  // or old DS1820
         type_s = 1;
         break;
       case 0x28:
-        if (owLogLevel > 1) Debug.print(F("  Chip = DS18B20"));
+        if (owLogLevel > 2) Debug.print(F("  Chip = DS18B20"));
         type_s = 0;
         break;
       case 0x22:
-        if (owLogLevel > 1) Debug.print(F("  Chip = DS1822"));
+        if (owLogLevel > 2) Debug.print(F("  Chip = DS1822"));
         type_s = 0;
         break;
       default:
         if (owLogLevel > 0) Debug.println(F("Device is not a DS18x20 family device."));
-        dsStateChange(&dsState, dsStateSEARCH);
+        owStateChange(&owState, owStateSEARCH);
         return;
       } 
       // Read Data
@@ -121,10 +121,21 @@ void oneWireDoEvents() {
           Debug.print(F(" "));
         }
       }
-      if (owLogLevel > 1){ 
-        Debug.print(F(" CRC="));
-        Debug.print(OneWire::crc8(data, 8), HEX);
-        Debug.println("");
+      /*      if (owLogLevel > 1){ 
+       Debug.print(F(" CRC="));
+       Debug.print(OneWire::crc8(data, 8), HEX);
+       Debug.println("");
+       }
+       */
+      if (OneWire::crc8(data, 8) != data[8]) {
+        if (owLogLevel > 0) Debug.print(F("\now: ROM ="));
+        for(byte i = 0; i < 8; i++) {
+          if (owLogLevel > 0) Debug.print(F(" "));
+          if (owLogLevel > 0) Debug.print(owAddr[i], HEX);
+        }
+        if (owLogLevel > 0) Debug.println(F(" Data-CRC is not valid!"));
+        owStateChange(&owState, owStateSEARCH);
+        return;
       }
       // convert the data to actual temperature
       unsigned int raw = (data[1] << 8) | data[0];
@@ -143,22 +154,28 @@ void oneWireDoEvents() {
         // default is 12 bit resolution, 750 ms conversion time
       }
       float celsius = (float)raw / 16.0;
-      if (owLogLevel > 0) Debug.print(F("ds: ROM ="));
-      for(byte i = 0; i < 8; i++) {
-        Debug.write(' ');
-        if (owLogLevel > 0) Debug.print(dsAddr[i], HEX);
-      }
-      if (owLogLevel > 0){ 
+      if (owLogLevel > 1) {
+        Debug.print(F("ow: ROM ="));
+        for(byte i = 0; i < 8; i++) {
+          Debug.write(' ');
+          if (owLogLevel > 0) Debug.print(owAddr[i], HEX);
+        }
         Debug.print(F(" Temperature = "));
         Debug.print(celsius);
-        Debug.println(F(" C "));
+        Debug.print(F(" C "));
       }
-      dsStateChange(&dsState, dsStateSEARCH);
+      owStateChange(&owState, owStateSEARCH);
       if (celsius < -30 || celsius > 125) {
-        if (owLogLevel > 0){ 
-          Debug.print(F("\n\n\n  Temperature out of Range \n\n\n "));
+        if (owLogLevel > 0) {
+          if (owLogLevel == 1){ // Ansonsten steht die Addr schon da
+            Debug.print(F("ow: ROM ="));
+            for(byte i = 0; i < 8; i++) {
+              Debug.write(' ');
+              if (owLogLevel > 0) Debug.print(owAddr[i], HEX);
+            }
+          }
+          Debug.println(F("\n\n\n  Temperature out of Range \n\n\n "));
         }
-
       } 
       else {
         for (uint8_t i = 0; i < sizeof(owArray); i++) {
@@ -177,7 +194,7 @@ void oneWireDoEvents() {
               Debug.print(F(" ) = "));
               Debug.print(ee,DEC);
             }
-            if (dsAddr[b] != ee) {
+            if (owAddr[b] != ee) {
               if (owLogLevel > 2) Debug.println(F(" --- NOT EQUAL --- "));
               OK = false;
               break;
@@ -187,7 +204,7 @@ void oneWireDoEvents() {
             if (Values[owArray[i]].ValueX10 != celsius * 10) {
               Values[owArray[i]].ValueX10 = celsius * 10;
               Values[owArray[i]].Changed = true;
-              if (owLogLevel > 0) {
+              if (owLogLevel > 1) {
                 Debug.print(F(" Zugewiesen an "));           
                 Debug.println(owArray[i]); 
               }
@@ -195,44 +212,51 @@ void oneWireDoEvents() {
             return;
           }
         }  
-        if (owLogLevel > 0) Debug.println(F("Addresse des Sensor nicht bekannt")); 
+        if (owLogLevel > 0) {          
+          Debug.print(F("ow: ROM = "));
+          for(byte i = 0; i < 8; i++) {
+            Debug.write(' ');
+            if (owLogLevel > 0) Debug.print(owAddr[i], HEX);
+          }
+          Debug.println(F("Addresse des Sensor nicht bekannt")); 
+        }
       }
     }
     break;
   }
 }
 
-void dsStateChange (uint8_t *oldState, uint8_t newState) {
-  if (owLogLevel > 1){ 
-    Debug.print(F("ds: State "));
-    dsStatePrintName(*oldState);
+void owStateChange (uint8_t *oldState, uint8_t newState) {
+  if (owLogLevel > 2){ 
+    Debug.print(F("ow: State "));
+    owStatePrintName(*oldState);
     Debug.print(F("->"));
-    dsStatePrintName(newState);
+    owStatePrintName(newState);
     Debug.println(F(""));
   }
   *oldState=newState;
 }
-void dsStatePrintName (const uint8_t& State) {
+void owStatePrintName (const uint8_t& State) {
   switch (State) {
-  case dsStateBUS_SELECT:
-    Debug.print(F("dsStateBUS_SELECT")); 
+  case owStateBUS_SELECT:
+    Debug.print(F("owStateBUS_SELECT")); 
     break;
-  case dsStateWAIT_BEFORE_RESET: 
+  case owStateWAIT_BEFORE_RESET: 
     Debug.print(F("WAIT_BEFORE_RESET")); 
     break;
-  case dsStateRESET_SEARCH: 
-    Debug.print(F("dsStateRESET_SEARCH")); 
+  case owStateRESET_SEARCH: 
+    Debug.print(F("owStateRESET_SEARCH")); 
     break;
-  case dsStateWAIT_AFTER_RESET: 
+  case owStateWAIT_AFTER_RESET: 
     Debug.print(F("WAIT_AFTER_RESET")); 
     break;
-  case dsStateSEARCH: 
+  case owStateSEARCH: 
     Debug.print(F("SEARCH")); 
     break;
-  case dsStateSELECT: 
+  case owStateSELECT: 
     Debug.print(F("SELECT")); 
     break;
-  case dsStateREAD: 
+  case owStateREAD: 
     Debug.print(F("READ")); 
     break;
   default: 
@@ -241,6 +265,9 @@ void dsStatePrintName (const uint8_t& State) {
     Debug.print(F("'"));
   }
 }
+
+
+
 
 
 

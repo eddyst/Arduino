@@ -1,7 +1,7 @@
 #define    ethLogLevel 1   //0 nix, 1 Fehlermeldungen, 2 Ein/Ausgehender Datenverkehr, 3 AlleInfos
 #define   allgLogLevel 1
 #define   vitoLogLevel 1
-#define     owLogLevel 1
+#define     owLogLevel 1   //0 nix, 1 Fehlermeldungen + unbekannte Addressen, 2 alle Buswechsel u. readings, 3 Statuswechsel + Zuordnung + alles
 #define thermeLogLevel 1
 #define     hkLogLevel 1
 #define     wwLogLevel 1

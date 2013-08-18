@@ -37,7 +37,7 @@ void oneWireDoEvents() {
     owStateChange(&owState, owStateRESET_SEARCH);
     break;
   case owStateWAIT_BEFORE_RESET:
-    if (millis() - waitSince >= 20000) {
+    if (millis() - waitSince >= 0) {//20000
       owStateChange(&owState, owStateRESET_SEARCH);
     }
     break;
@@ -201,13 +201,9 @@ void oneWireDoEvents() {
             }
           }
           if (OK) {
-            if (Values[owArray[i]].ValueX10 != celsius * 10) {
-              Values[owArray[i]].ValueX10 = celsius * 10;
-              Values[owArray[i]].Changed = true;
-              if (owLogLevel > 1) {
+            if ( setValue( owArray[i], celsius * 10) && owLogLevel > 1) {
                 Debug.print(F(" Zugewiesen an "));           
                 Debug.println(owArray[i]); 
-              }
             }
             return;
           }

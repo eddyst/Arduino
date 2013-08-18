@@ -47,7 +47,8 @@ typedef struct {
 #define _WWRuecklaufTemp            35
 #define _WWSpeicherTemp1            36
 #define _WWSpeicherTemp2            37
-#define _WWVorlaufTemp              38
+#define _WWVentil                   38
+#define _WWVorlaufTemp              39
 
 uint8_t  owArray[] = { _HKRuecklaufTemp2, _HKRuecklaufTemp1Mieter, _HKRuecklaufTemp1Steier, _HKVorlaufTemp1, _HKVorlaufTemp2,
                        _KollektorAusdehnung,  _KollektorWTRuecklauf,_KollektorWTVorlauf,
@@ -99,6 +100,7 @@ prog_char FHEM_WWPumpeProzent             [] myPROGMEM =  "WWPumpeProzent";
 prog_char FHEM_WWRuecklaufTemp            [] myPROGMEM =  "WWRuecklaufTemp";
 prog_char FHEM_WWSpeicherTemp1            [] myPROGMEM =  "WWSpeicherTemp1";
 prog_char FHEM_WWSpeicherTemp2            [] myPROGMEM =  "WWSpeicherTemp2";
+prog_char FHEM_WWVentil                   [] myPROGMEM =  "WWVentil";
 prog_char FHEM_WWVorlaufTemp              [] myPROGMEM =  "WWVorlaufTemp";
 
 
@@ -146,11 +148,12 @@ data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
                  { 0, ValueUnknown, FHEM_WWRuecklaufTemp            }, //35
                  { 0, ValueUnknown, FHEM_WWSpeicherTemp1            }, 
                  { 0, ValueUnknown, FHEM_WWSpeicherTemp2            },  
+                 { 0, ValueUnknown, FHEM_WWVentil                   },  
                  { 0, ValueUnknown, FHEM_WWVorlaufTemp              }
                 };
 
 boolean  Solarbetrieb          = false;
-uint8_t  HKSollTempVorgabe     = 30; //ToDo: Abfragen
+uint8_t  HKSollTempVorgabe     = 33; //ToDo: Abfragen
 #define  HKHysterese              5
 uint8_t  WWSollTempVorgabe     = 45; //ToDo: Abfragen
 #define  WWHysterese              5
@@ -160,9 +163,33 @@ uint8_t  WWSollTempVorgabe     = 45; //ToDo: Abfragen
          #define ThermeBetriebsartDauerndReduziert 3
          #define ThermeBetriebsartDauerndNormal    4
 
+#define AnforderungNOT_INITIALIZED            0
+#define AnforderungFALSE_Temp1_UNKNOWN       10
+#define AnforderungFALSE_Temp1               20
+#define AnforderungFALSE_Temp2_UNKNOWN       30
+#define AnforderungFALSE_Temp2               40
+#define AnforderungFALSE_Temp3_UNKNOWN       50
+#define AnforderungFALSE_Temp3               60
+#define AnforderungTRUE_ZeitlimitStart       70
+#define AnforderungTRUE_Zeitlimit            80
+#define AnforderungFALSE_Ausschaltkriterien  90
+#define AnforderungTRUE                     100
+#define AnforderungTRUE_Temp2               110
+#define AnforderungTRUE_Temp3               120
+
 char buffer[30]; //Allgemeiner Buffer 
 #define EEPROM_Offset_Stagnation   0
 #define EEPROM_Offset_owArray    100
+
+boolean setValue( uint8_t valueID, int16_t value) {
+  if (Values[valueID].ValueX10 != value) {
+    Values[valueID].ValueX10 = value;
+    Values[valueID].Changed  = 1;
+    return true;
+  }  else {
+    return false;
+  }
+}
 
 // Converts an ASCII character to a numeric value.
 // Returns true if the character is numeric, returns
@@ -182,5 +209,12 @@ boolean parseHexChar(const char& input, uint8_t& output) {
   }
   output = 0;
   return false;
+}
+
+boolean iif(const boolean value, uint8_t TrueValue, uint8_t FalseValue) {
+  if (value) 
+    return TrueValue;
+  else
+    return FalseValue;
 }
 

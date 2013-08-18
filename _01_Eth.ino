@@ -1,7 +1,7 @@
 byte mac[] = { 
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE };   // MAC address.
 #define owAddrSyncIntervall 3600000
-
+#define SollSyncIntervall    600000
 
 #include <SPI.h>
 #include <Ethernet.h>
@@ -114,7 +114,9 @@ void ethDoEvents() {
                   i++;
                 } 
                 if (ethLogLevel > 2) Debug.println(AddrByteIndex);
-                if( AddrByteIndex != 7) {if (ethLogLevel > 0) Debug.println(F("\neth: owAddr: Addresslänge stimmt nicht!")); }
+                if( AddrByteIndex != 7) {
+                  if (ethLogLevel > 0) Debug.println(F("\neth: owAddr: Addresslänge stimmt nicht!")); 
+                }
                 else {
                   for (AddrByteIndex=0; AddrByteIndex < 8; AddrByteIndex++) {
                     if (EEPROM.read( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex) != Addr[AddrByteIndex]){
@@ -180,7 +182,7 @@ void ethDoEvents() {
     static uint8_t Value = 0;
     switch (Task){
     case 0:
-      static uint32_t lastOwAddrSync = millis() - owAddrSyncIntervall - 10;
+      static uint32_t lastOwAddrSync = millis() - owAddrSyncIntervall;
       if (millis() - lastOwAddrSync > owAddrSyncIntervall) { //jede Stunde Addressen neu abfragen
         if (Value >= sizeof(owArray)) {
           lastOwAddrSync = millis();
@@ -191,7 +193,7 @@ void ethDoEvents() {
           //Bsp: sending: {"<OWA1=".AttrVal("HKRuecklauf","ID","0 0 0 0 0 0 0 0").">" }
           //     returns: <OWA1=00 00 00 00 00 00 00 00> 
           strcpy_P(buffer, Values[owArray[Value]].Name);
-          if (ethLogLevel > 1) Debug.print("{ \"<OWA");
+          if (ethLogLevel > 1) Debug.print("eth: OUT: { \"<OWA");
           client.print("{ \"<OWA");
           if (Value < 16) {
             if (ethLogLevel > 1) Debug.print("0");
@@ -207,10 +209,29 @@ void ethDoEvents() {
           client.println("\",\"ID\",\"0 0 0 0 0 0 0 0\").\">\" }");
           Value ++;
         }
-      } 
-      else Task++; 
+      } else Task++; 
       break;
-    case 1:    
+    case 1:
+      static uint32_t lastSollSync = millis() - SollSyncIntervall;
+      if (millis() - lastSollSync > SollSyncIntervall) { //jede Stunde Addressen neu abfragen
+        if (Value >= 2) {
+          lastSollSync = millis();
+          Task++; 
+          Value = 0;
+        } else {
+          if (Value == 0) {//Sende: { "<HK=".Value("HKSollTempVorgabe").">" }
+            if (ethLogLevel > 1) Debug.println("eth: OUT: { \"<HK=\".Value(\"HKSollTempVorgabe\").\">\" }");
+            client.println("{ \"<HK=\".Value(\"HKSollTempVorgabe\").\">\" }");
+          } 
+          else if ( Value == 1) {
+            if (ethLogLevel > 1) Debug.println("eth: OUT: { \"<WW=\".Value(\"WWSollTempVorgabe\").\">\" }");
+            client.println("{ \"<WW=\".Value(\"WWSollTempVorgabe\").\">\" }");
+          }
+          Value ++;
+        }
+      } else Task++; 
+      break;
+    case 2:    
       if (Value >= sizeof(Values)/sizeof(data)) {
         Task++; 
         Value = 0;
@@ -219,7 +240,7 @@ void ethDoEvents() {
         if ( Values[Value].Changed == 1 && Values[Value].ValueX10 != ValueUnknown) {
           Values[Value].Changed = 0;
           strcpy_P(buffer, Values[Value].Name);
-          if (ethLogLevel > 1) Debug.print( F("eth: \nset "));  
+          if (ethLogLevel > 1) Debug.print( F("eth: OUT: set "));  
           client.print(  "set "); 
           if (ethLogLevel > 1) Debug.print( buffer);  
           client.print( buffer); 
@@ -237,6 +258,7 @@ void ethDoEvents() {
   }
   lastConnected = client.connected();    // store the state of the connection for next time through the loop
 }
+
 
 
 

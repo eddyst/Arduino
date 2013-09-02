@@ -4,111 +4,116 @@ typedef struct {
   int16_t ValueX10 :  15;
   prog_char *Name;
 } data;
-#define _HKAnforderung               0
-#define _HKRuecklaufTemp2            1
-#define _HKRuecklaufTemp1Mieter      2
-#define _HKRuecklaufTemp1Steier      3
-#define _HKVorlaufTemp1              4
-#define _HKVorlaufTemp2              5
-#define _HKVorlaufValue              6
 
-#define _KollektorAusdehnung         7
-#define _KollektorStatus             8
-#define _KollektorWTRuecklauf        9
-#define _KollektorWTVorlauf         10        
+#define       _HKAnforderung               0
+prog_char FHEM_HKAnforderung              [] PROGMEM =  "HKAnforderung";
+//#define       _HKRuecklaufTemp1Mieter      ?
+//prog_char FHEM_HKRuecklaufTemp1Mieter     [] PROGMEM =  "HKRuecklaufTemp1Mieter";
+//#define       _HKRuecklaufTemp1Steier      ?
+//prog_char FHEM_HKRuecklaufTemp1Steier     [] PROGMEM =  "HKRuecklaufTemp1Steier";
+#define       _HKRuecklaufTemp2            1
+prog_char FHEM_HKRuecklaufTemp2           [] PROGMEM =  "HKRuecklaufTemp2";
+#define       _HKVorlaufTemp1              2
+prog_char FHEM_HKVorlaufTemp1             [] PROGMEM =  "HKVorlaufTemp1";
+#define       _HKVorlaufTemp2              3
+prog_char FHEM_HKVorlaufTemp2             [] PROGMEM =  "HKVorlaufTemp2";
+#define       _HKVorlaufTempSoll           4
+prog_char FHEM_HKVorlaufTempSoll          [] PROGMEM =  "HKVorlaufTempSoll";
+#define       _HKVorlaufValue              5
+prog_char FHEM_HKVorlaufValue             [] PROGMEM =  "HKVorlaufValue";
 
-#define _SolarRuecklauf             11
-#define _SolarStatus                12
-#define _SolarVorlauf               13
-#define _SolarWTRuecklauf           14
-#define _SolarWTVorlauf             15   
+#define       _KollektorAusdehnung         6
+prog_char FHEM_KollektorAusdehnung        [] PROGMEM =  "KollektorAusdehnung";
+#define       _KollektorStatus             7
+prog_char FHEM_KollektorStatus            [] PROGMEM =  "KollektorStatus";
+#define       _KollektorWTRuecklauf        8
+prog_char FHEM_KollektorWTRuecklauf       [] PROGMEM =  "KollektorWTRuecklauf";
+#define       _KollektorWTVorlauf          9        
+prog_char FHEM_KollektorWTVorlauf         [] PROGMEM =  "KollektorWTVorlauf";
 
-#define _SpeicherA1                 16
-#define _SpeicherA2                 17
-#define _SpeicherA3                 18
-#define _SpeicherA4                 19
-#define _SpeicherA5                 20
+#define       _SolarRuecklauf             10
+prog_char FHEM_SolarRuecklauf             [] PROGMEM =  "SolarRuecklauf";
+#define       _SolarStatus                11
+prog_char FHEM_SolarStatus                [] PROGMEM =  "SolarStatus";
+#define       _SolarVorlauf               12
+prog_char FHEM_SolarVorlauf               [] PROGMEM =  "SolarVorlauf";
+#define       _SolarWTRuecklauf           13
+prog_char FHEM_SolarWTRuecklauf           [] PROGMEM =  "SolarWTRuecklauf";
+#define       _SolarWTVorlauf             14   
+prog_char FHEM_SolarWTVorlauf             [] PROGMEM =  "SolarWTVorlauf";
 
-#define _ThermeAussenTemp           21
-#define _ThermeBetriebsart          22
-#define _ThermeBrennerLeistung      23
-#define _ThermeKesselTempIst        24
-#define _ThermeKesselTempSoll       25
-#define _ThermeRuecklaufTemp        26
-#define _ThermeRuecklaufTempOpto    27
-#define _ThermeSpeicherTemp         28
-#define _ThermeUmschaltventilOpto   29
-#define _ThermeUmschaltventilTaster 30
-#define _ThermeVorlaufTemp          31
-#define _ThermeVorlaufTempSoll      32
+#define       _SpeicherA1                 15
+prog_char FHEM_SpeicherA1                 [] PROGMEM =  "SpeicherA1";
+#define       _SpeicherA2                 16
+prog_char FHEM_SpeicherA2                 [] PROGMEM =  "SpeicherA2";
+#define       _SpeicherA3                 17
+prog_char FHEM_SpeicherA3                 [] PROGMEM =  "SpeicherA3";
+#define       _SpeicherA4                 18
+prog_char FHEM_SpeicherA4                 [] PROGMEM =  "SpeicherA4";
+#define       _SpeicherA5                 19
+prog_char FHEM_SpeicherA5                 [] PROGMEM =  "SpeicherA5";
 
-#define _WWAnforderung              33
-#define _WWPumpeProzent             34
-#define _WWRuecklaufTemp            35
-#define _WWSpeicherTemp1            36
-#define _WWSpeicherTemp2            37
-#define _WWVentil                   38
-#define _WWVorlaufTemp              39
+#define       _SteuerungMemFree           20
+prog_char FHEM_SteuerungMemFree           [] PROGMEM =  "SteuerungMemFree";
+#define       _SteuerungStatus            21
+prog_char FHEM_SteuerungStatus            [] PROGMEM =  "SteuerungStatus";
 
-uint8_t  owArray[] = { _HKRuecklaufTemp2, _HKRuecklaufTemp1Mieter, _HKRuecklaufTemp1Steier, _HKVorlaufTemp1, _HKVorlaufTemp2,
+#define       _ThermeAussenTemp           22
+prog_char FHEM_ThermeAussenTemp           [] PROGMEM =  "ThermeAussenTemp";
+#define       _ThermeBetriebsart          23
+prog_char FHEM_ThermeBetriebsart          [] PROGMEM =  "ThermeBetriebsart";
+#define       _ThermeBrennerLeistung      24
+prog_char FHEM_ThermeBrennerLeistung      [] PROGMEM =  "ThermeBrennerLeistung";
+#define       _ThermeKesselTempIst        25
+prog_char FHEM_ThermeKesselTempIst        [] PROGMEM =  "ThermeKesselTempIst";
+#define       _ThermeKesselTempSoll       26
+prog_char FHEM_ThermeKesselTempSoll       [] PROGMEM =  "ThermeKesselTempSoll";
+#define       _ThermeRuecklaufTemp        27
+prog_char FHEM_ThermeRuecklaufTemp        [] PROGMEM =  "ThermeRuecklaufTemp";
+#define       _ThermeRuecklaufTempOpto    28
+prog_char FHEM_ThermeRuecklaufTempOpto    [] PROGMEM =  "ThermeRuecklaufTempOpto";
+#define       _ThermeSpeicherTemp         29
+prog_char FHEM_ThermeSpeicherTemp         [] PROGMEM =  "ThermeSpeicherTemp";
+#define       _ThermeUmschaltventilOpto   30
+prog_char FHEM_ThermeUmschaltventilOpto   [] PROGMEM =  "ThermeUmschaltventilOpto";
+#define       _ThermeUmschaltventilTaster 31
+prog_char FHEM_ThermeUmschaltventilTaster [] PROGMEM =  "ThermeUmschaltventilTaster";
+#define       _ThermeVorlaufTempIst       32
+prog_char FHEM_ThermeVorlaufTempIst       [] PROGMEM =  "ThermeVorlaufTempIst";
+#define       _ThermeVorlaufTempSoll      33
+prog_char FHEM_ThermeVorlaufTempSoll      [] PROGMEM =  "ThermeVorlaufTempSoll";
+#define       _ThermeVorlaufValue         34
+prog_char FHEM_ThermeVorlaufValue         [] PROGMEM =  "ThermeVorlaufValue";
+#define       _ThermeVorlaufVentil        35
+prog_char FHEM_ThermeVorlaufVentil        [] PROGMEM =  "ThermeVorlaufVentil";
+
+#define       _WWAnforderung              36
+prog_char FHEM_WWAnforderung              [] PROGMEM =  "WWAnforderung";
+#define       _WWPumpeProzent             37
+prog_char FHEM_WWPumpeProzent             [] PROGMEM =  "WWPumpeProzent";
+#define       _WWRuecklaufTemp            38
+prog_char FHEM_WWRuecklaufTemp            [] PROGMEM =  "WWRuecklaufTemp";
+#define       _WWSpeicherTemp1            39
+prog_char FHEM_WWSpeicherTemp1            [] PROGMEM =  "WWSpeicherTemp1";
+#define       _WWSpeicherTemp2            40
+prog_char FHEM_WWSpeicherTemp2            [] PROGMEM =  "WWSpeicherTemp2";
+#define       _WWSpeicherTempSoll         41
+prog_char FHEM_WWSpeicherTempSoll         [] PROGMEM =  "WWSpeicherTempSoll";
+#define       _WWVentil                   42
+prog_char FHEM_WWVentil                   [] PROGMEM =  "WWVentil";
+#define       _WWVorlaufTemp              43
+prog_char FHEM_WWVorlaufTemp              [] PROGMEM =  "WWVorlaufTemp";
+
+uint8_t  owArray[] = { _HKRuecklaufTemp2, _HKVorlaufTemp1, _HKVorlaufTemp2,
                        _KollektorAusdehnung,  _KollektorWTRuecklauf,_KollektorWTVorlauf,
                        _SolarRuecklauf, _SolarVorlauf, _SolarWTRuecklauf, _SolarWTVorlauf,
                        _SpeicherA1, _SpeicherA2, _SpeicherA3, _SpeicherA4, _SpeicherA5,
-                       _ThermeRuecklaufTemp, _ThermeVorlaufTemp,
+                       _ThermeRuecklaufTemp, _ThermeVorlaufTempIst,
                        _WWPumpeProzent, _WWRuecklaufTemp, _WWSpeicherTemp1, _WWSpeicherTemp2, _WWVorlaufTemp };
-
-prog_char FHEM_HKAnforderung              [] myPROGMEM =  "HKAnforderung";
-prog_char FHEM_HKRuecklaufTemp2           [] myPROGMEM =  "HKRuecklaufTemp2";
-prog_char FHEM_HKRuecklaufTemp1Mieter     [] myPROGMEM =  "HKRuecklaufTemp1Mieter";
-prog_char FHEM_HKRuecklaufTemp1Steier     [] myPROGMEM =  "HKRuecklaufTemp1Steier";
-prog_char FHEM_HKVorlaufTemp1             [] myPROGMEM =  "HKVorlaufTemp1";
-prog_char FHEM_HKVorlaufTemp2             [] myPROGMEM =  "HKVorlaufTemp2";
-prog_char FHEM_HKVorlaufValue             [] myPROGMEM =  "HKVorlaufValue";
-
-prog_char FHEM_KollektorAusdehnung        [] myPROGMEM =  "KollektorAusdehnung";
-prog_char FHEM_KollektorStatus            [] myPROGMEM =  "KollektorStatus";
-prog_char FHEM_KollektorWTRuecklauf       [] myPROGMEM =  "KollektorWTRuecklauf";
-prog_char FHEM_KollektorWTVorlauf         [] myPROGMEM =  "KollektorWTVorlauf";
-
-prog_char FHEM_SolarRuecklauf             [] myPROGMEM =  "SolarRuecklauf";
-prog_char FHEM_SolarStatus                [] myPROGMEM =  "SolarStatus";
-prog_char FHEM_SolarVorlauf               [] myPROGMEM =  "SolarVorlauf";
-prog_char FHEM_SolarWTRuecklauf           [] myPROGMEM =  "SolarWTRuecklauf";
-prog_char FHEM_SolarWTVorlauf             [] myPROGMEM =  "SolarWTVorlauf";
-
-prog_char FHEM_SpeicherA1                 [] myPROGMEM =  "SpeicherA1";
-prog_char FHEM_SpeicherA2                 [] myPROGMEM =  "SpeicherA2";
-prog_char FHEM_SpeicherA3                 [] myPROGMEM =  "SpeicherA3";
-prog_char FHEM_SpeicherA4                 [] myPROGMEM =  "SpeicherA4";
-prog_char FHEM_SpeicherA5                 [] myPROGMEM =  "SpeicherA5";
-
-prog_char FHEM_ThermeAussenTemp           [] myPROGMEM =  "ThermeAussenTemp";
-prog_char FHEM_ThermeBetriebsart          [] myPROGMEM =  "ThermeBetriebsart";
-prog_char FHEM_ThermeBrennerLeistung      [] myPROGMEM =  "ThermeBrennerLeistung";
-prog_char FHEM_ThermeKesselTempIst        [] myPROGMEM =  "ThermeKesselTempIst";
-prog_char FHEM_ThermeKesselTempSoll       [] myPROGMEM =  "ThermeKesselTempSoll";
-prog_char FHEM_ThermeRuecklaufTemp        [] myPROGMEM =  "ThermeRuecklaufTemp";
-prog_char FHEM_ThermeRuecklaufTempOpto    [] myPROGMEM =  "ThermeRuecklaufTempOpto";
-prog_char FHEM_ThermeSpeicherTemp         [] myPROGMEM =  "ThermeSpeicherTemp";
-prog_char FHEM_ThermeUmschaltventilOpto   [] myPROGMEM =  "ThermeUmschaltventilOpto";
-prog_char FHEM_ThermeUmschaltventilTaster [] myPROGMEM =  "ThermeUmschaltventilTaster";
-prog_char FHEM_ThermeVorlaufTemp          [] myPROGMEM =  "ThermeVorlaufTemp";
-prog_char FHEM_ThermeVorlaufTempSoll      [] myPROGMEM =  "ThermeVorlaufTempSoll";
-
-prog_char FHEM_WWAnforderung              [] myPROGMEM =  "WWAnforderung";
-prog_char FHEM_WWPumpeProzent             [] myPROGMEM =  "WWPumpeProzent";
-prog_char FHEM_WWRuecklaufTemp            [] myPROGMEM =  "WWRuecklaufTemp";
-prog_char FHEM_WWSpeicherTemp1            [] myPROGMEM =  "WWSpeicherTemp1";
-prog_char FHEM_WWSpeicherTemp2            [] myPROGMEM =  "WWSpeicherTemp2";
-prog_char FHEM_WWVentil                   [] myPROGMEM =  "WWVentil";
-prog_char FHEM_WWVorlaufTemp              [] myPROGMEM =  "WWVorlaufTemp";
-
 
 #define ValueUnknown -10000
 data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
                  { 0, ValueUnknown, FHEM_HKRuecklaufTemp2           },  
-                 { 0, ValueUnknown, FHEM_HKRuecklaufTemp1Mieter     }, 
-                 { 0, ValueUnknown, FHEM_HKRuecklaufTemp1Steier     }, 
                  { 0, ValueUnknown, FHEM_HKVorlaufTemp1             }, 
                  { 0, ValueUnknown, FHEM_HKVorlaufTemp2             }, // 5
                  { 0, ValueUnknown, FHEM_HKVorlaufValue             }, 
@@ -140,7 +145,7 @@ data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
                  { 0, ValueUnknown, FHEM_ThermeSpeicherTemp         }, 
                  { 0, ValueUnknown, FHEM_ThermeUmschaltventilOpto   }, 
                  { 0, ValueUnknown, FHEM_ThermeUmschaltventilTaster }, //30
-                 { 0, ValueUnknown, FHEM_ThermeVorlaufTemp          }, 
+                 { 0, ValueUnknown, FHEM_ThermeVorlaufTempIst       }, 
                  { 0, ValueUnknown, FHEM_ThermeVorlaufTempSoll      },  
                  
                  { 0, ValueUnknown, FHEM_WWAnforderung              }, 
@@ -157,6 +162,7 @@ uint8_t  HKSollTempVorgabe     = 33; //ToDo: Abfragen
 #define  HKHysterese              5
 uint8_t  WWSollTempVorgabe     = 45; //ToDo: Abfragen
 #define  WWHysterese              5
+
          #define ThermeBetriebsartAbschalten       0
          #define ThermeBetriebsartWW               1
          #define ThermeBetriebsartHeizenUndWW      2

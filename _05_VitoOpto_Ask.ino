@@ -94,7 +94,7 @@ void vitoDoEvents () {
            */
         default: 
           if (vitoLogLevel > 0) Debug.println();
-          if (vitoLogLevel > 0) Debug.print("Unbekannte VitoAdr:");
+          if (vitoLogLevel > 0) Debug.print( F ( "Unbekannte VitoAdr:"));
           if (vitoLogLevel > 0) Debug.println(VitoAdr);
         }
       }

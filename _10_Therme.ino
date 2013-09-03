@@ -38,14 +38,14 @@ void ThermeInit() {
 void ThermeVorlaufTempVorgabeRechnen() {
   if (ThermeStatus == ThermeStatusSolarBetrieb) {
     ThermeStatus = ThermeStatusSolarBetriebAktualisieren;
-    if (thermeLogLevel > 0) Debug.println ("Therme: ThermeStatusSolarBetriebAktualisieren");      
+    if (thermeLogLevel > 0) Debug.println ( F ( "Therme: ThermeStatusSolarBetriebAktualisieren"));      
   }
 }
 
 void ThermeBrennerGehtAus() {
   if (ThermeStatus > ThermeStatusSolarBetriebWarteAufVentil) {
     ThermeStatus = ThermeStatusSolarBetriebPumpennachlaufStart;
-    if (thermeLogLevel > 0) Debug.println ("Therme: ThermeStatusSolarBetriebPumpennachlaufStart");      
+    if (thermeLogLevel > 0) Debug.println ( F ( "Therme: ThermeStatusSolarBetriebPumpennachlaufStart"));      
   }
 }
 
@@ -64,7 +64,7 @@ void ThermeSolarbetriebEndet () {
   digitalWrite(ThermeVentilSperrenPin     , LOW   );
   digitalWrite(ThermeHappyTempPin         , LOW   );
   ThermeStatus = ThermeStatusNotfallBetrieb;
-  if (thermeLogLevel > 0) Debug.println ("Therme: ThermeStatusNotfallBetrieb");      
+  if (thermeLogLevel > 0) Debug.println ( F ( "Therme: ThermeStatusNotfallBetrieb"));      
 }
 
 void   ThermeDoEvents() {

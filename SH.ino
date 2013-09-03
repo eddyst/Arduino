@@ -1,4 +1,4 @@
-#define    ethLogLevel 2   //0 nix, 1 Fehlermeldungen, 2 Ein/Ausgehender Datenverkehr, 3 AlleInfos
+#define    ethLogLevel 1   //0 nix, 1 Fehlermeldungen, 2 Ein/Ausgehender Datenverkehr, 3 AlleInfos
 #define   allgLogLevel 1
 #define   vitoLogLevel 1
 #define     owLogLevel 1   //0 nix, 1 Fehlermeldungen + unbekannte Addressen, 2 alle Buswechsel u. readings, 3 Statuswechsel + Zuordnung + alles
@@ -16,7 +16,7 @@
 
 void setup() {
   Debug.begin( 57600);
-  Debug.println( "Setup");
+  Debug.println( F ( "Setup"));
   AllgInit();
   EthInit();
   VitoInit();
@@ -25,7 +25,7 @@ void setup() {
   WWInit();
   SolarInit();
   KollektorInit();
-  Debug.print("freeMemory  = "); 
+  Debug.print( F( "freeMemory  = ")); 
   Debug.println( freeMemory());
   //  ATS_GetFreeMemory();
 }

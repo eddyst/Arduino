@@ -109,7 +109,7 @@ void SolarDoEvents (){
    else
    pos++;
    if (solarLogLevel > 0) {
-   Debug.print(F("pump: Pos = "));
+   Debug.print( F("pump: Pos = "));
    Debug.println(pos);
    }
    //    servoSolar.write(pos);
@@ -117,7 +117,7 @@ void SolarDoEvents (){
    }
    */
   if ( setValue( _SolarStatus , Status) && solarLogLevel > 0) {
-    Debug.print(F("Solar: Status Zugewiesen: "));           
+    Debug.print( F("Solar: Status Zugewiesen: "));           
     Debug.println(Status); 
   }
 }

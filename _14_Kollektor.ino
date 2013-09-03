@@ -45,7 +45,7 @@ void KollektorDoEvents (){
     }
     Status = KollektorStatus_Stagnation;
     if( kollLogLevel > 0) {
-      Debug.print(F("Koll: Stagnationsroutine hat Pumpe deaktiviert - Neuer Status: "));           
+      Debug.print( F("Koll: Stagnationsroutine hat Pumpe deaktiviert - Neuer Status: "));           
       Debug.println(Status); 
     }
   }
@@ -98,7 +98,7 @@ void KollektorDoEvents (){
     Status = KollektorStatus_AUS;
   }
   if ( setValue( _KollektorStatus, Status) && kollLogLevel > 0) {
-    Debug.print(F("Koll: Status Zugewiesen: "));           
+    Debug.print( F("Koll: Status Zugewiesen: "));           
     Debug.println(Status); 
   }
 }

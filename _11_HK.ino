@@ -63,9 +63,9 @@ void   HKDoEvents() {
         //Wir haben keine genaue Info zur Ventilpossition deswegen zählen wir hilfsweise bei jeder Bewegung die Schritte in eine Richtung
         if ( lTemp - Values[_HKVorlaufTemp2].ValueX10 < 0) { //Temperatur ist gestiegen
           if ( hkLogLevel > 1) {
-            Debug.print  (F("HK: Temp gestiegen"));
+            Debug.print  ( F("HK: Temp gestiegen"));
             Debug.print  (lTemp);
-            Debug.print  (F(" -> "));
+            Debug.print  ( F(" -> "));
             Debug.println(Values[_HKVorlaufTemp2].ValueX10);
           }
           int16_t d = -1 * abs(Values[_HKVorlaufTemp2].ValueX10 - HKSollTempVorgabe * 10) * 120 + 300;
@@ -73,9 +73,9 @@ void   HKDoEvents() {
         } 
         else if ( lTemp - Values[_HKVorlaufTemp2].ValueX10 > 0 ) { 
           if ( hkLogLevel > 1) {
-            Debug.print  (F("HK: Temp gefallen"));
+            Debug.print  ( F("HK: Temp gefallen"));
             Debug.print  (lTemp);
-            Debug.print  (F(" -> "));
+            Debug.print  ( F(" -> "));
             Debug.println(Values[_HKVorlaufTemp2].ValueX10);
           }
             int16_t d = abs(Values[_HKVorlaufTemp2].ValueX10 - HKSollTempVorgabe * 10) * 120 + 400;
@@ -109,7 +109,7 @@ void hkMove ( int16_t d) {
   Values[_HKVorlaufValue].ValueX10 += d / 100;
   Values[_HKVorlaufValue].Changed = 1;
   if (hkLogLevel > 0) {
-    Debug.print (F("    HKVorlaufValue = "));
+    Debug.print ( F("    HKVorlaufValue = "));
     Debug.println(Values[_HKVorlaufValue].ValueX10);
   }
 }

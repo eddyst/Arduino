@@ -8,21 +8,21 @@ byte mac[] = {
 EthernetClient client;
 
 void EthInit() {
-  if (ethLogLevel > 0) Debug.println( F("eth: Initialising the Ethernet controller"));
+  if (ethLogLevel > 0) Debug.println( F( "eth: Initialising the Ethernet controller"));
   if (Ethernet.begin(mac) == 0) {
-    if (ethLogLevel > 0) Debug.println( F("eth: Failed to configure Ethernet using DHCP"));
+    if (ethLogLevel > 0) Debug.println( F( "eth: Failed to configure Ethernet using DHCP"));
   }
   delay(1000);  // give the Ethernet shield a second to initialize:
   if (ethLogLevel > 0) {
-    Debug.print( F("eth: My IP address: "));
+    Debug.print( F( "eth: My IP address: "));
     for (byte i = 0; i < 4; i++) {
-
       Debug.print(Ethernet.localIP()[i], DEC); // print the value of each byte of the IP address:
       Debug.print( F ( ".")); 
     }
     Debug.println();
   }
 }
+
 void ethDoEvents() {
   static boolean lastConnected = false;                 // state of the connection last time through the main loop
   boolean First = true;
@@ -44,20 +44,79 @@ void ethDoEvents() {
         if (c == '>') {
           recording --;
           if (recording == 0) {
-            if (ethLogLevel > 2) Debug.print( F("\neth: Zeichenfolge auswerten: ")); 
+            if (ethLogLevel > 2) Debug.print( F( "\neth: Zeichenfolge auswerten: ")); 
             for (int i = 0; i < ethInBufferCount; i++) {
               if (ethLogLevel > 2) Debug.write(ethInBuffer[i]);
             }
-            if (ethInBufferCount > 6 //&& ethInBuffer[0] == '<'
+            if (ethInBufferCount > 7 
+              && ethInBuffer[0] == 'S'
+              && ethInBuffer[1] == 'o'
+              && ethInBuffer[2] == 'l'
+              && ethInBuffer[3] == 'l'
+              && ethInBuffer[6] == '=' ) {
+              if (ethLogLevel > 1) Debug.println(F(" = SollTempVorgabe"));
+              uint8_t digit;
+              uint8_t i = 7;
+              int16_t Value = 0;
+              while(i < ethInBufferCount && i < 9) {
+                if (ethLogLevel > 2) {
+                  Debug.print  ( F("  ethInBuffer["));
+                  Debug.print  ( i);
+                  Debug.print  ( F("] = ")); 
+                  Debug.print  ( ethInBuffer[i]);
+                }
+                if (parseHexChar(ethInBuffer[i], digit)) {//Wir können mit parseHexChar arbeiten weils nur 1 Stelle ist
+                  Value = Value * 10 + digit;
+                  if (ethLogLevel > 2) {
+                    Debug.print  ( F("  Value ="));
+                    Debug.println( Value);
+                  }
+                } 
+                else {
+                  if (ethLogLevel > 0) Debug.println(F(" parseHexChar == false"));
+                }
+                i++;
+              }
+              if(ethInBuffer[4] == 'W' && ethInBuffer[5] == 'W') {
+                if( Value * 10 > WWtMax - WWHysterese) {
+                  Value = WWtMax - WWHysterese;
+                  if (wwLogLevel > 0) {
+                    Debug.print   ( F("WW: WWSpeicherTempSoll ueberschreitet max "));
+                    Debug.println ( WWtMax - WWHysterese );
+                  }
+                } 
+                else {
+                  Value *= 10;
+                }
+                if( setValue( _WWSpeicherTempSoll, Value) && wwLogLevel > 1) {
+                  Debug.print   ( F("WW: WWSpeicherTempSoll Zugewiesen: "));
+                  Debug.println ( Values[_WWSpeicherTempSoll].ValueX10);
+                }
+              }
+              else if (ethInBuffer[4] == 'H' && ethInBuffer[5] == 'K') {
+                if ( Value * 10 > HKtMax - HKHysterese) {
+                  Value = HKtMax - HKHysterese;
+                  if (hkLogLevel > 0) {
+                    Debug.print   ( F("HK: HKVorlaufTempSoll ueberschreitet max "));
+                    Debug.println ( Value);
+                  }
+                }
+                if ( setValue( _HKVorlaufTempSoll, Value * 10) && hkLogLevel > 1) {
+                  Debug.print   ( F("HK: HKVorlaufTempSoll Zugewiesen: "));
+                  Debug.println   ( Values[_HKVorlaufTempSoll].ValueX10);
+                }
+              }
+            } 
+            else if (ethInBufferCount > 6 
               && ethInBuffer[0] == 'O'
               && ethInBuffer[1] == 'W'
               && ethInBuffer[2] == 'A' 
               && ethInBuffer[5] == '=' ) {
-              if (ethLogLevel > 1) Debug.println( F(" = OneWireAddresse"));
+              if (ethLogLevel > 1) Debug.println( F( " = OneWireAddresse"));
               uint8_t digit;
               uint8_t owArrayIndex = 0;
               if (!parseHexChar(ethInBuffer[3], digit)) {
-                if (ethLogLevel > 0) Debug.println( F("\neth: owAddr: 1. Stelle der Addresse nicht nummerisch!")); 
+                if ( ethLogLevel > 0) Debug.println( F( "\neth: owAddr: 1. Stelle der Addresse nicht nummerisch!")); 
               }
               else {
                 owArrayIndex = digit * 16;
@@ -105,7 +164,7 @@ void ethDoEvents() {
                     }
                   } 
                   else {
-                    if (ethLogLevel > 2) Debug.println( F("  parseHexChar = false"));
+                    if (ethLogLevel > 2) Debug.println( F( "  parseHexChar = false"));
                     if (AfterFirstChar) {
                       HexCharIndex = 0; 
                       AddrByteIndex++;
@@ -115,17 +174,17 @@ void ethDoEvents() {
                 } 
                 if (ethLogLevel > 2) Debug.println(AddrByteIndex);
                 if( AddrByteIndex != 7) {
-                  if (ethLogLevel > 0) Debug.println( F("\neth: owAddr: Addresslänge stimmt nicht!")); 
+                  if (ethLogLevel > 0) Debug.println( F( "\neth: owAddr: Addresslänge stimmt nicht!")); 
                 }
                 else {
                   for (AddrByteIndex=0; AddrByteIndex < 8; AddrByteIndex++) {
                     if (EEPROM.read( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex) != Addr[AddrByteIndex]){
                       if (ethLogLevel > 0) {
-                        Debug.print( F("\neth:     Schreibe EEPROM(")); 
-                        Debug.print( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex); 
-                        Debug.print( F(", ")); 
-                        Debug.print( Addr[AddrByteIndex], HEX); 
-                        Debug.println( F(")")); 
+                        Debug.print  ( F( "\neth:     Schreibe EEPROM(")); 
+                        Debug.print  ( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex); 
+                        Debug.print  ( F( ", ")); 
+                        Debug.print  ( Addr[AddrByteIndex], HEX); 
+                        Debug.println(F(")")); 
                       }
                       EEPROM.write( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex, Addr[AddrByteIndex]);
                     }
@@ -141,7 +200,7 @@ void ethDoEvents() {
             ethInBuffer[ethInBufferCount++]=c; 
           }
           else {
-            if (ethLogLevel > 0) Debug.println( F("eth: ethInBuffer-Groesse ueberschritten"));
+            if (ethLogLevel > 0) Debug.println( F( "eth: ethInBuffer-Groesse ueberschritten"));
             recording = 0;
           }
         }
@@ -152,24 +211,24 @@ void ethDoEvents() {
 
   if(!client.connected()) {     // if there's no net connection
     if (lastConnected){         // but there was one last time through the loop, then stop the client:
-      if (ethLogLevel > 0) Debug.println( F("\neth: disconnecting."));
+      if (ethLogLevel > 0) Debug.println( F( "\neth: disconnecting."));
       client.stop();
     }
-    if (ethLogLevel > 0) Debug.print( F("eth: \nEthernet.maintain: "));
+    if (ethLogLevel > 0) Debug.print( F( "eth: \nEthernet.maintain: "));
     if (ethLogLevel > 0) 
       Debug.println(Ethernet.maintain());   
     else 
       Ethernet.maintain();                         // Maybe we will get a new IP so lets do this when no client is connected
     static uint8_t connectionErrors = 0;
-    if (client.connect("hm.fritz.box", 7072)) {    // try to get a connection, report back via serial:
-      if (ethLogLevel > 0) Debug.println( F("\neth: connected"));
+    if (client.connect( "hm.fritz.box", 7072)) {    // try to get a connection, report back via serial:
+      if (ethLogLevel > 0) Debug.println(F("\neth: connected"));
       connectionErrors = 0;
       client.println( F ( ""));
     } 
     else {        // if you didn't get a connection to the server:
-      if (ethLogLevel > 0) Debug.println( F("\neth: connection failed"));
+      if (ethLogLevel > 0) Debug.println( F( "\neth: connection failed"));
       if (connectionErrors++ > 200) {
-        if (ethLogLevel > 0) Debug.println( F("eth: Reset in 10 Sec"));
+        if (ethLogLevel > 0) Debug.println( F( "eth: Reset in 10 Sec"));
         //ToDo: ACHTUNG das stöhrt den Offlinebetrieb -> evl. im EEprom merken das wir resettet haben und wenn das so ist nicht mehr resetten
         //      Vielleicht reicht es auch nur dann zu resetten wenn schonmal eine Verbindung bestanden hat und die jetzt weg ist.
         delay(10000);
@@ -193,23 +252,24 @@ void ethDoEvents() {
           //Bsp: sending: {"<OWA1=".AttrVal("HKRuecklauf","ID","0 0 0 0 0 0 0 0").">" }
           //     returns: <OWA1=00 00 00 00 00 00 00 00> 
           strcpy_P(buffer, Values[owArray[Value]].Name);
-          if (ethLogLevel > 1) Debug.print( F ( "eth: OUT: { \"<OWA"));
-          client.print( F ( "{ \"<OWA"));
+          if (ethLogLevel > 1) Debug.print( F( "eth: OUT: { \"<OWA"));
+          client.print( F( "{ \"<OWA"));
           if (Value < 16) {
-            if (ethLogLevel > 1) Debug.print( F ( "0"));
-            client.print( F ( "0"));
+            if (ethLogLevel > 1) Debug.print( F( "0"));
+            client.print( F( "0"));
           }
-          if (ethLogLevel > 1) Debug.print(Value,HEX);
-          client.print(Value,HEX);
-          if (ethLogLevel > 1) Debug.print( F ( "=\".AttrVal(\""));
-          client.print( F ( "=\".AttrVal(\""));
+          if (ethLogLevel > 1) Debug.print( Value, HEX);
+          client.print( Value, HEX);
+          if (ethLogLevel > 1) Debug.print( F( "=\".AttrVal(\""));
+          client.print( F( "=\".AttrVal(\""));
           if (ethLogLevel > 1) Debug.print(buffer);
           client.print(buffer);
-          if (ethLogLevel > 1) Debug.println( F ( "\",\"ID\",\"0 0 0 0 0 0 0 0\").\">\" }"));
-          client.println( F ( "\",\"ID\",\"0 0 0 0 0 0 0 0\").\">\" }"));
+          if (ethLogLevel > 1) Debug.println( F( "\",\"ID\",\"0 0 0 0 0 0 0 0\").\">\" }"));
+          client.println( F( "\",\"ID\",\"0 0 0 0 0 0 0 0\").\">\" }"));
           Value ++;
         }
-      } else Task++; 
+      } 
+      else Task++; 
       break;
     case 1:
       static uint32_t lastSollSync = millis() - SollSyncIntervall;
@@ -218,18 +278,20 @@ void ethDoEvents() {
           lastSollSync = millis();
           Task++; 
           Value = 0;
-        } else {
-          if (Value == 0) {//Sende: { "<HK=".Value("HKSollTempVorgabe").">" }
-            if (ethLogLevel > 1) Debug.println( F ( "eth: OUT: { \"<HK=\".Value(\"HKSollTempVorgabe\").\">\" }"));
-            client.println( F ( "{ \"<HK=\".Value(\"HKSollTempVorgabe\").\">\" }"));
+        } 
+        else {//Sende: { "<SollHK=".Value("HKSollTempVorgabe").">" }
+          if (Value == 0) {
+            if (ethLogLevel > 1) Debug.println( F( "eth: OUT: { \"<SollHK=\".Value(\"HKSollTempVorgabe\").\">\" }"));
+            client.println( F( "{ \"<SollHK=\".Value(\"HKSollTempVorgabe\").\">\" }"));
           } 
           else if ( Value == 1) {
-            if (ethLogLevel > 1) Debug.println( F ( "eth: OUT: { \"<WW=\".Value(\"WWSollTempVorgabe\").\">\" }"));
-            client.println( F ( "{ \"<WW=\".Value(\"WWSollTempVorgabe\").\">\" }"));
+            if (ethLogLevel > 1) Debug.println( F( "eth: OUT: { \"<SollWW=\".Value(\"WWSollTempVorgabe\").\">\" }"));
+            client.println( F( "{ \"<SollWW=\".Value(\"WWSollTempVorgabe\").\">\" }"));
           }
           Value ++;
         }
-      } else Task++; 
+      } 
+      else Task++; 
       break;
     case 2:    
       if (Value >= sizeof(Values)/sizeof(data)) {
@@ -241,11 +303,11 @@ void ethDoEvents() {
           Values[Value].Changed = 0;
           strcpy_P(buffer, Values[Value].Name);
           if (ethLogLevel > 1) Debug.print( F("eth: OUT: set "));  
-          client.print( F ( "set ")); 
+          client.print( F( "set ")); 
           if (ethLogLevel > 1) Debug.print( buffer);  
           client.print( buffer); 
           if (ethLogLevel > 1) Debug.print( F(" "));  
-          client.print( F ( " ")); 
+          client.print( F( " ")); 
           if (ethLogLevel > 1) Debug.println( ( float)Values[Value].ValueX10 / 10, 1);
           client.println( ( float)Values[Value].ValueX10 / 10, 1);
         }
@@ -258,6 +320,8 @@ void ethDoEvents() {
   }
   lastConnected = client.connected();    // store the state of the connection for next time through the loop
 }
+
+
 
 
 

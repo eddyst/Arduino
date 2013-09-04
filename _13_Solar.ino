@@ -30,10 +30,10 @@ void   SolarInit() {
 #define SolarStatus_UNKNOWN_KollektorWTVorlauf  -2
 #define SolarStatus_UNKNOWN_SpeicherA5          -1
 #define SolarStatus_AUS                          0
-#define SolarStatus_AN_2                        12
-#define SolarStatus_AN_3                        13
-#define SolarStatus_AN_4                        14
-#define SolarStatus_AN_5                        15
+#define SolarStatus_AN_2                        40
+#define SolarStatus_AN_3                        30
+#define SolarStatus_AN_4                        20
+#define SolarStatus_AN_5                        10
 
 void SolarDoEvents (){
   static int8_t Status = SolarStatus_INIT;
@@ -109,7 +109,7 @@ void SolarDoEvents (){
    else
    pos++;
    if (solarLogLevel > 0) {
-   Debug.print( F("pump: Pos = "));
+   Debug.print  ( F( "pump: Pos = "));
    Debug.println(pos);
    }
    //    servoSolar.write(pos);
@@ -117,7 +117,7 @@ void SolarDoEvents (){
    }
    */
   if ( setValue( _SolarStatus , Status) && solarLogLevel > 0) {
-    Debug.print( F("Solar: Status Zugewiesen: "));           
+    Debug.print  ( F( "Solar: Status Zugewiesen: "));           
     Debug.println(Status); 
   }
 }

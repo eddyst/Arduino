@@ -190,6 +190,14 @@ uint8_t  WWSollTempVorgabe     = 45; //ToDo: Abfragen
 #define AnforderungTRUE_Temp2               110
 #define AnforderungTRUE_Temp3               120
 
+#define  HKtMax                   600
+#define  HKHysterese              20
+#define  HKSpreizung              30
+
+#define  WWtMax                   570
+#define  WWHysterese              20
+#define  WWSpreizung              30
+
 char buffer[30]; //Allgemeiner Buffer 
 #define EEPROM_Offset_Stagnation   0
 #define EEPROM_Offset_owArray    100

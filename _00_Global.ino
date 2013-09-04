@@ -68,8 +68,8 @@ prog_char FHEM_ThermeBrennerLeistung      [] PROGMEM =  "ThermeBrennerLeistung";
 prog_char FHEM_ThermeKesselTempIst        [] PROGMEM =  "ThermeKesselTempIst";
 #define       _ThermeKesselTempSoll       26
 prog_char FHEM_ThermeKesselTempSoll       [] PROGMEM =  "ThermeKesselTempSoll";
-#define       _ThermeRuecklaufTemp        27
-prog_char FHEM_ThermeRuecklaufTemp        [] PROGMEM =  "ThermeRuecklaufTemp";
+#define       _ThermeRuecklaufTempIst     27
+prog_char FHEM_ThermeRuecklaufTempIst     [] PROGMEM =  "ThermeRuecklaufTempIst";
 #define       _ThermeRuecklaufTempOpto    28
 prog_char FHEM_ThermeRuecklaufTempOpto    [] PROGMEM =  "ThermeRuecklaufTempOpto";
 #define       _ThermeSpeicherTemp         29
@@ -108,7 +108,7 @@ uint8_t  owArray[] = { _HKRuecklaufTemp2, _HKVorlaufTemp1, _HKVorlaufTemp2,
                        _KollektorAusdehnung,  _KollektorWTRuecklauf,_KollektorWTVorlauf,
                        _SolarRuecklauf, _SolarVorlauf, _SolarWTRuecklauf, _SolarWTVorlauf,
                        _SpeicherA1, _SpeicherA2, _SpeicherA3, _SpeicherA4, _SpeicherA5,
-                       _ThermeRuecklaufTemp, _ThermeVorlaufTempIst,
+                       _ThermeRuecklaufTempIst, _ThermeVorlaufTempIst,
                        _WWPumpeProzent, _WWRuecklaufTemp, _WWSpeicherTemp1, _WWSpeicherTemp2, _WWVorlaufTemp };
 
 #define ValueUnknown -10000
@@ -116,6 +116,7 @@ data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
                  { 0, ValueUnknown, FHEM_HKRuecklaufTemp2           },  
                  { 0, ValueUnknown, FHEM_HKVorlaufTemp1             }, 
                  { 0, ValueUnknown, FHEM_HKVorlaufTemp2             }, // 5
+                 { 0, ValueUnknown, FHEM_HKVorlaufTempSoll          }, // 5
                  { 0, ValueUnknown, FHEM_HKVorlaufValue             }, 
 
                  { 0, ValueUnknown, FHEM_KollektorAusdehnung        }, 
@@ -135,24 +136,30 @@ data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
                  { 0, ValueUnknown, FHEM_SpeicherA4                 }, 
                  { 0, ValueUnknown, FHEM_SpeicherA5                 }, //20
 
+                 { 0, ValueUnknown, FHEM_SteuerungMemFree           }, 
+                 { 0, ValueUnknown, FHEM_SteuerungStatus            }, //20
+
                  { 0, ValueUnknown, FHEM_ThermeAussenTemp           }, 
                  { 0, ValueUnknown, FHEM_ThermeBetriebsart          }, 
                  { 0, ValueUnknown, FHEM_ThermeBrennerLeistung      }, 
                  { 0, ValueUnknown, FHEM_ThermeKesselTempIst        }, 
                  { 0, ValueUnknown, FHEM_ThermeKesselTempSoll       }, //25
-                 { 0, ValueUnknown, FHEM_ThermeRuecklaufTemp        }, 
+                 { 0, ValueUnknown, FHEM_ThermeRuecklaufTempIst     }, 
                  { 0, ValueUnknown, FHEM_ThermeRuecklaufTempOpto    }, 
                  { 0, ValueUnknown, FHEM_ThermeSpeicherTemp         }, 
                  { 0, ValueUnknown, FHEM_ThermeUmschaltventilOpto   }, 
                  { 0, ValueUnknown, FHEM_ThermeUmschaltventilTaster }, //30
                  { 0, ValueUnknown, FHEM_ThermeVorlaufTempIst       }, 
                  { 0, ValueUnknown, FHEM_ThermeVorlaufTempSoll      },  
+                 { 0, ValueUnknown, FHEM_ThermeVorlaufValue         }, 
+                 { 0, ValueUnknown, FHEM_ThermeVorlaufVentil        },  
                  
                  { 0, ValueUnknown, FHEM_WWAnforderung              }, 
                  { 0, ValueUnknown, FHEM_WWPumpeProzent             }, 
                  { 0, ValueUnknown, FHEM_WWRuecklaufTemp            }, //35
                  { 0, ValueUnknown, FHEM_WWSpeicherTemp1            }, 
                  { 0, ValueUnknown, FHEM_WWSpeicherTemp2            },  
+                 { 0, ValueUnknown, FHEM_WWSpeicherTempSoll         },  
                  { 0, ValueUnknown, FHEM_WWVentil                   },  
                  { 0, ValueUnknown, FHEM_WWVorlaufTemp              }
                 };

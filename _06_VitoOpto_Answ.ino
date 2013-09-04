@@ -69,7 +69,6 @@ void VitoOnValueRead(uint8_t AdrBit1, uint8_t AdrBit2, uint8_t Length, uint8_t* 
     }
     if (Values[_ThermeVorlaufTempSoll].ValueX10 != ValueInt16) {
       Values[_ThermeVorlaufTempSoll].ValueX10 = ValueInt16;
-      ThermeVorlaufTempVorgabeRechnen();
       Values[_ThermeVorlaufTempSoll].Changed = 1;
       if (vitoLogLevel > 1) Debug.print( F( " Zugewiesen ")); 
     }
@@ -173,13 +172,11 @@ void VitoOnValueRead(uint8_t AdrBit1, uint8_t AdrBit2, uint8_t Length, uint8_t* 
       Debug.print( F( " --> Leistung% ")); 
       Debug.print( ValueInt16);
     }
-    if (Values[_ThermeBrennerLeistung].ValueX10 != ValueInt16) {
-      Values[_ThermeBrennerLeistung].ValueX10 = ValueInt16;
-      Values[_ThermeBrennerLeistung].Changed = 1;
-      if( ValueInt16 == 0) ThermeBrennerGehtAus();
-      if( vitoLogLevel > 1) Debug.print( F( " Zugewiesen ")); 
-    }
-    break;
+    if( Values[_ThermeBrennerLeistung].ValueX10 > 0 && ValueInt16 == 0) 
+      ThermeBrennerGehtAus();
+    if ( setValue(_ThermeBrennerLeistung, ValueInt16) && vitoLogLevel > 1) {
+      Debug.print( F( " Zugewiesen ")); 
+    }    break;
     /*      
      case : // Brennerstarts
      Vito.beginReadValue(0x08, 0x8A, 0x04); 

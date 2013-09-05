@@ -28,20 +28,20 @@ void   HKDoEvents() {
   int8_t  Anforderung = AnforderungNOT_INITIALIZED;
   static uint32_t AnforderungSeit;
   if (Values[_HKAnforderung].ValueX10 < AnforderungTRUE) { // Es ist noch keine Anforderung aktiv -> prüfen was gegen einschalten spricht
-    if      ( Values[_HKVorlaufTemp1].ValueX10 == ValueUnknown)           Anforderung = AnforderungFALSE_Temp1_UNKNOWN;
-    else if ( Values[_HKVorlaufTemp1].ValueX10 >= HKSollTempVorgabe * 10) Anforderung = AnforderungFALSE_Temp1;
-    else if ( Values[_SpeicherA2    ].ValueX10 == ValueUnknown)           Anforderung = AnforderungFALSE_Temp2_UNKNOWN;
-    else if ( Values[_SpeicherA2    ].ValueX10 >= HKSollTempVorgabe * 10) Anforderung = AnforderungFALSE_Temp2; 
-    else if ( Values[_SpeicherA3    ].ValueX10 == ValueUnknown)           Anforderung = AnforderungFALSE_Temp3_UNKNOWN;
-    else if ( millis() - AnforderungSeit > 300000 )                       Anforderung = AnforderungTRUE_Zeitlimit; 
-    else                                                                  Anforderung = AnforderungTRUE;
-    if ( Anforderung < AnforderungTRUE_Zeitlimit){ // Die Einschaltkriterien sind nicht erfüllt
+    if      ( Values[_HKVorlaufTemp1].ValueX10 == ValueUnknown                       ) Anforderung = AnforderungFALSE_Temp1_UNKNOWN;
+    else if ( Values[_HKVorlaufTemp1].ValueX10 >= Values[_HKVorlaufTempSoll].ValueX10) Anforderung = AnforderungFALSE_Temp1;
+    else if ( Values[_SpeicherA2    ].ValueX10 == ValueUnknown                       ) Anforderung = AnforderungFALSE_Temp2_UNKNOWN;
+    else if ( Values[_SpeicherA2    ].ValueX10 >= Values[_HKVorlaufTempSoll].ValueX10) Anforderung = AnforderungFALSE_Temp2; 
+    else if ( Values[_SpeicherA3    ].ValueX10 == ValueUnknown                       ) Anforderung = AnforderungFALSE_Temp3_UNKNOWN;
+    else if ( millis() - AnforderungSeit > 300000                                    ) Anforderung = AnforderungFALSE_Zeitlimit; 
+    else                                                                               Anforderung = AnforderungTRUE;
+    if ( Anforderung < AnforderungFALSE_Zeitlimit){ // Die Einschaltkriterien sind nicht erfüllt
       AnforderungSeit = millis();      //Wartezeit  zurücksetzen
     }
   } 
   else {                                           //Die Anforderung ist bereits aktiv -> kömmer nu endlich AUS?
-    if      ( Values[_SpeicherA1].ValueX10 < ( HKSollTempVorgabe + HKHysterese) * 10) Anforderung = AnforderungTRUE_Temp2;
-    else if ( Values[_SpeicherA2].ValueX10 < ( HKSollTempVorgabe + HKHysterese) * 10) Anforderung = AnforderungTRUE_Temp3;
+    if      ( Values[_SpeicherA1].ValueX10 < Values[_HKVorlaufTempSoll].ValueX10 + HKHysterese) Anforderung = AnforderungTRUE_Temp2;
+    else if ( Values[_SpeicherA2].ValueX10 < Values[_HKVorlaufTempSoll].ValueX10 + HKHysterese) Anforderung = AnforderungTRUE_Temp3;
     else                                                                              Anforderung = AnforderungFALSE_Ausschaltkriterien;
   }
   if ( setValue( _HKAnforderung, Anforderung) && hkLogLevel > 1) {
@@ -68,7 +68,7 @@ void   HKDoEvents() {
             Debug.print  ( F(" -> "));
             Debug.println(Values[_HKVorlaufTemp2].ValueX10);
           }
-          int16_t d = -1 * abs(Values[_HKVorlaufTemp2].ValueX10 - HKSollTempVorgabe * 10) * 120 + 300;
+          int16_t d = -1 * abs(Values[_HKVorlaufTemp2].ValueX10 - Values[_HKVorlaufTempSoll].ValueX10) * 120 + 300;
           hkMove (d);
         } 
         else if ( lTemp - Values[_HKVorlaufTemp2].ValueX10 > 0 ) { 
@@ -78,7 +78,7 @@ void   HKDoEvents() {
             Debug.print  ( F(" -> "));
             Debug.println(Values[_HKVorlaufTemp2].ValueX10);
           }
-            int16_t d = abs(Values[_HKVorlaufTemp2].ValueX10 - HKSollTempVorgabe * 10) * 120 + 400;
+            int16_t d = abs(Values[_HKVorlaufTemp2].ValueX10 - Values[_HKVorlaufTempSoll].ValueX10) * 120 + 400;
             hkMove (d);
         }
         lTemp = Values[_HKVorlaufTemp2].ValueX10;
@@ -109,11 +109,10 @@ void hkMove ( int16_t d) {
   Values[_HKVorlaufValue].ValueX10 += d / 100;
   Values[_HKVorlaufValue].Changed = 1;
   if (hkLogLevel > 0) {
-    Debug.print ( F("    HKVorlaufValue = "));
+    Debug.print  ( F("    HKVorlaufValue = "));
     Debug.println(Values[_HKVorlaufValue].ValueX10);
   }
 }
-
 
 
 

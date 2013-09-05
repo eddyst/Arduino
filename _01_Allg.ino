@@ -18,11 +18,10 @@ void   pruefeNotbetriebPin() {
   static Bounce bouncer = Bounce(NotbetriebPin, 500, true); 
   if (bouncer.update()) {
     if (bouncer.fallingEdge()) {
-      Solarbetrieb = true;
       ThermeSolarbetriebBeginnt();
       HKSolarbetriebBeginnt();    
-    } else if (bouncer.risingEdge()) {
-      Solarbetrieb = false;
+    } 
+    else if (bouncer.risingEdge()) {
       ThermeSolarbetriebEndet();
       HKSolarbetriebEndet();
     } 
@@ -35,7 +34,8 @@ boolean setValue( uint8_t valueID, int16_t value) {
     Values[valueID].ValueX10 = value;
     Values[valueID].Changed  = 1;
     return true;
-  }  else {
+  }  
+  else {
     return false;
   }
 }
@@ -49,10 +49,12 @@ boolean parseHexChar(const char& input, uint8_t& output) {
   if(input >= '0' && input <= '9') {
     output = input - '0';
     return true; 
-  } else if(input >= 'A' && input <= 'F'){
+  } 
+  else if(input >= 'A' && input <= 'F'){
     output = input - 'A' + 10;
     return true; 
-  } else if(input >= 'a' && input <= 'f'){
+  } 
+  else if(input >= 'a' && input <= 'f'){
     output = input - 'a' + 10;
     return true; 
   }
@@ -66,6 +68,7 @@ boolean iif(const boolean value, uint8_t TrueValue, uint8_t FalseValue) {
   else
     return FalseValue;
 }
+
 
 
 

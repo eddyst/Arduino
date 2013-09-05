@@ -3,6 +3,7 @@
 #define WWPumpeServoPwmPin     38 
 #define WWPumpeServoEnabledPin 47
 
+
 //#define PumpeWWServoPwmMin 30
 //#define PumpeWWServoPwmMax 175
 
@@ -25,64 +26,8 @@ void   WWInit() {
 }
 
 void WWDoEvents (){
-  int8_t  Anforderung = AnforderungNOT_INITIALIZED;
-  static uint32_t AnforderungSeit;
-  if ( WWSollTempVorgabe > 60 - WWHysterese)
-    WWSollTempVorgabe = 60 - WWHysterese;
-  if (Values[_WWAnforderung].ValueX10 < AnforderungTRUE_ZeitlimitStart) { // Es ist noch keine Anforderung aktiv -> prüfen was gegen einschalten spricht
-    if      ( Values[_WWSpeicherTemp1].ValueX10 == ValueUnknown)           Anforderung = AnforderungFALSE_Temp1_UNKNOWN;
-    else if ( Values[_WWSpeicherTemp1].ValueX10 >= WWSollTempVorgabe * 10) Anforderung = AnforderungFALSE_Temp1;
-    else if ( Values[_SpeicherA1     ].ValueX10 == ValueUnknown)           Anforderung = AnforderungFALSE_Temp2_UNKNOWN;
-    else if ( Values[_SpeicherA1     ].ValueX10 >= WWSollTempVorgabe * 10) Anforderung = AnforderungFALSE_Temp2; 
-    else if ( Values[_SpeicherA2     ].ValueX10 == ValueUnknown)           Anforderung = AnforderungFALSE_Temp3_UNKNOWN;
-    else                                                                   Anforderung = AnforderungTRUE_Zeitlimit;
-  } 
-  else if (Values[_WWAnforderung].ValueX10 == AnforderungTRUE_ZeitlimitStart) {  
-    AnforderungSeit = millis();      //Wartezeit  Starten
-    Anforderung = AnforderungTRUE_Zeitlimit;
-  } 
-  else if (Values[_WWAnforderung].ValueX10 == AnforderungTRUE_Zeitlimit) {
-    if (millis() - AnforderungSeit > 30000 ) {
-      Anforderung = AnforderungTRUE;
-    }
-  } 
-  else if (Values[_WWAnforderung].ValueX10 == AnforderungTRUE) {  //Die Anforderung ist bereits aktiv -> kömmer nu endlich AUS?
-    if      ( Values[_SpeicherA1     ].ValueX10 > ( WWSollTempVorgabe + WWHysterese) * 10) Anforderung = AnforderungTRUE_Temp2;
-    else if ( Values[_SpeicherA2     ].ValueX10 > ( WWSollTempVorgabe + WWHysterese) * 10) Anforderung = AnforderungTRUE_Temp3;
-    else                                                                                   Anforderung = AnforderungFALSE_Ausschaltkriterien;
-  } 
-  else Anforderung = AnforderungNOT_INITIALIZED;
-
-  if ( setValue( _WWAnforderung, Anforderung) && wwLogLevel > 1) {
-    Debug.print   ( F("WW: WWAnforderung Zugewiesen: "));
-    Debug.println   ( Values[_WWAnforderung].ValueX10);
-  }
-
-  uint16_t sMax = Values[ _SpeicherA1].ValueX10;
-  if (sMax < Values[ _SpeicherA1].ValueX10) sMax = Values[ _SpeicherA2].ValueX10;
-
-  uint8_t pos = Values[_WWPumpeProzent].ValueX10;    // variable to store the servo position 
-  if ( digitalRead(WWPumpeAnPin) == LOW   ){
-    if ( Solarbetrieb
-      && Values[_WWSpeicherTemp1].ValueX10 != ValueUnknown  //Sonst gibts nix zu regeln
-      && Values[_WWSpeicherTemp1].ValueX10 < 550            //is schon nahe am Temp.begrenzer und lohnt ni mehr
-      && Values[_WWSpeicherTemp1].ValueX10 < sMax - 20) {   //Einschalten bringt noch was
-      digitalWrite(WWPumpeAnPin, HIGH   );
-      pos = 100;
-    }
-  }
-  else {
-    if ( !Solarbetrieb
-      || Values[ _WWSpeicherTemp1].ValueX10 > 570         //Ausschaltkriterium im Sommer wenn genug Solar vorhanden
-      || sMax < Values[ _WWSpeicherTemp1].ValueX10 + 10) {//Ausschaltkriterium ohne Solareintrag - weiter pumpen würde das WW abkühlen
-      digitalWrite(WWPumpeAnPin, LOW   );
-      pos = 0;
-    } 
-  }
-  if ( setValue( _WWPumpeProzent, pos) && wwLogLevel > 1) {
-    Debug.print   ( F("WW: WWPumpeProzent Zugewiesen: "));
-    Debug.println   ( Values[_WWPumpeProzent].ValueX10);
-  }
+  WWAnforderungBerechnen ();
+  WWPumpe ();
 
   if ( digitalRead( WWVentilRuecklauf) == LOW) {
     if ( Values[ _WWRuecklaufTemp].ValueX10 != ValueUnknown
@@ -100,6 +45,96 @@ void WWDoEvents (){
     Debug.print   ( F("WW: WWVentil Zugewiesen: "));
     Debug.println   ( Values[_WWVentil].ValueX10);
   }
+}
+
+void WWAnforderungBerechnen () {
+  int16_t ValueX10new1 = Values[_WWAnforderung].ValueX10;
+  static uint32_t AnforderungSeit;
+  if ( ValueX10new1 <= AnforderungFALSE_Zeitlimit) { // Es ist noch keine Anforderung aktiv -> prüfen was gegen einschalten spricht
+    if      ( Values[_WWSpeicherTemp1].ValueX10 == ValueUnknown                                      ) ValueX10new1 = AnforderungFALSE_Temp1_UNKNOWN;
+    else if ( Values[_WWSpeicherTemp1].ValueX10 >= Values[_WWSpeicherTempSoll].ValueX10)               ValueX10new1 = AnforderungFALSE_Temp1;
+    else if ( Values[_SpeicherA1     ].ValueX10 == ValueUnknown                                      ) ValueX10new1 = AnforderungFALSE_Temp2_UNKNOWN;
+    else if ( Values[_SpeicherA1     ].ValueX10 >= Values[_WWSpeicherTempSoll].ValueX10 + WWSpreizung) ValueX10new1 = AnforderungFALSE_Temp2; 
+    else if ( Values[_SpeicherA2     ].ValueX10 == ValueUnknown                                      ) ValueX10new1 = AnforderungFALSE_Temp3_UNKNOWN; //Weil als ausschaltkriterium
+    else if (ValueX10new1 == AnforderungFALSE_Zeitlimit) {
+      if (millis() - AnforderungSeit > 30000 ) {
+        ValueX10new1 = AnforderungTRUE;
+      }
+    } 
+    else {
+      AnforderungSeit = millis();      //Wartezeit  Starten
+      ValueX10new1 = AnforderungFALSE_Zeitlimit;
+    } 
+  } 
+  else if (ValueX10new1 == AnforderungTRUE) {  //Die Anforderung ist bereits aktiv -> kömmer nu endlich AUS?
+    if      ( Values[_WWSpeicherTemp1].ValueX10 > Values[_WWSpeicherTempSoll].ValueX10 + WWHysterese                   ) ValueX10new1 = AnforderungFALSE_AusTemp1;
+    else if ( Values[_SpeicherA1     ].ValueX10 > Values[_WWSpeicherTempSoll].ValueX10 + WWHysterese + WWSpreizung * 2 ) ValueX10new1 = AnforderungFALSE_AusTemp2;
+    else if ( Values[_SpeicherA2     ].ValueX10 > Values[_WWSpeicherTempSoll].ValueX10 + WWHysterese + WWSpreizung     ) ValueX10new1 = AnforderungFALSE_AusTemp3;
+    else {
+      ValueX10new1 = AnforderungTRUE;
+      AnforderungSeit = millis();      //Wartezeit  Starten
+    }
+  } 
+  else {
+    if (millis() - AnforderungSeit > 30000 ) 
+      ValueX10new1 = AnforderungNOT_INITIALIZED;
+  }
+  if ( setValue( _WWAnforderung, ValueX10new1) && wwLogLevel > 1) {
+    Debug.print   ( F("WW: WWAnforderung Zugewiesen: "));
+    Debug.println   ( Values[_WWAnforderung].ValueX10);
+  }
+}
+#define WWPumpe_AusWWSpeicherTemp1GroesserSpeicherA1und2Minus2C -60
+#define WWPumpe_AusWWSpeicherTemp1GroesserWWtMaxMinus2C         -50
+#define WWPumpe_KeinSolarBetrieb                                -40
+#define WWPumpe_Aus                                             -35
+#define WWPumpe_WWSpeicherTemp1Unknown                          -30
+#define WWPumpe_WWSpeicherTemp1GroesserWWtMaxMinus2C            -20
+#define WWPumpe_WWSpeicherTemp1GroesserSpeicherA1und2Minus2C    -10
+
+void WWPumpe () {
+  ValueX10new1 = Values[_WWPumpeProzent].ValueX10;
+  static uint32_t wwPumpeSperre;
+  if ( ValueX10new1 > WWPumpe_Aus
+    || millis() - wwPumpeSperre > 60000) {
+    if( digitalRead(WWPumpeAnPin) == LOW   ){  //Pumpe ist aus
+      if ( Values[_SteuerungStatus].ValueX10 <= SteuerungStatusNotfallBetrieb)
+        ValueX10new1 = WWPumpe_KeinSolarBetrieb;
+      else if( Values[_WWSpeicherTemp1].ValueX10 >  WWtMax - 20) 
+        ValueX10new1 = WWPumpe_WWSpeicherTemp1GroesserWWtMaxMinus2C;      //is schon 2 C vor Temp.begrenzer und lohnt ni mehr
+      else if( Values[_WWSpeicherTemp1].ValueX10 >  Max( Values[ _SpeicherA1].ValueX10, Values[ _SpeicherA2].ValueX10) - 20) 
+        ValueX10new1 = WWPumpe_WWSpeicherTemp1GroesserSpeicherA1und2Minus2C;      
+      else if( Values[_WWSpeicherTemp1].ValueX10 == ValueUnknown) 
+        ValueX10new1 = WWPumpe_WWSpeicherTemp1Unknown;                    //Sonst gibts nix zu regeln
+      else {
+        ValueX10new1 = 1000;
+        digitalWrite(WWPumpeAnPin, HIGH);
+      }
+    } 
+    else { //Pumpe ist an
+      if ( Values[_SteuerungStatus].ValueX10 <= SteuerungStatusNotfallBetrieb)
+        ValueX10new1 = WWPumpe_KeinSolarBetrieb;
+      else if ( Values[ _WWSpeicherTemp1].ValueX10 > WWtMax)       //Ausschaltkriterium im Sommer wenn genug Solar vorhanden
+        ValueX10new1 = WWPumpe_AusWWSpeicherTemp1GroesserWWtMaxMinus2C;   
+      else if( Values[ _WWSpeicherTemp1].ValueX10 > Max( Values[ _SpeicherA1].ValueX10, Values[ _SpeicherA2].ValueX10) - 10) //Ausschaltkriterium ohne Solareintrag - weiter pumpen würde das WW abkühlen
+        ValueX10new1 = WWPumpe_AusWWSpeicherTemp1GroesserSpeicherA1und2Minus2C;   
+      if ( ValueX10new1 < WWPumpe_Aus) {
+        digitalWrite(WWPumpeAnPin, LOW);
+        wwPumpeSperre = millis();
+      } 
+    }
+  }
+  if ( setValue( _WWPumpeProzent, ValueX10new1) && wwLogLevel > 1) {
+    Debug.print   ( F("WW: WWPumpeProzent Zugewiesen: "));
+    Debug.println   ( Values[_WWPumpeProzent].ValueX10);
+  }
+}
+
+int16_t Max( int16_t Value1, int16_t Value2) {
+  if ( Value1 > Value2) 
+    return Value1;
+  else
+    return Value2;
 }
 
 

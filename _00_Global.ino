@@ -164,17 +164,11 @@ data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
                  { 0, ValueUnknown, FHEM_WWVorlaufTemp              }
                 };
 
-boolean  Solarbetrieb          = false;
-uint8_t  HKSollTempVorgabe     = 33; //ToDo: Abfragen
-#define  HKHysterese              5
-uint8_t  WWSollTempVorgabe     = 45; //ToDo: Abfragen
-#define  WWHysterese              5
-
-         #define ThermeBetriebsartAbschalten       0
-         #define ThermeBetriebsartWW               1
-         #define ThermeBetriebsartHeizenUndWW      2
-         #define ThermeBetriebsartDauerndReduziert 3
-         #define ThermeBetriebsartDauerndNormal    4
+#define ThermeBetriebsartAbschalten       0
+#define ThermeBetriebsartWW               1
+#define ThermeBetriebsartHeizenUndWW      2
+#define ThermeBetriebsartDauerndReduziert 3
+#define ThermeBetriebsartDauerndNormal    4
 
 #define AnforderungNOT_INITIALIZED            0
 #define AnforderungFALSE_Temp1_UNKNOWN       10
@@ -183,12 +177,15 @@ uint8_t  WWSollTempVorgabe     = 45; //ToDo: Abfragen
 #define AnforderungFALSE_Temp2               40
 #define AnforderungFALSE_Temp3_UNKNOWN       50
 #define AnforderungFALSE_Temp3               60
-#define AnforderungTRUE_ZeitlimitStart       70
-#define AnforderungTRUE_Zeitlimit            80
+#define AnforderungFALSE_Zeitlimit           80
 #define AnforderungFALSE_Ausschaltkriterien  90
+#define AnforderungFALSE_AusTemp1            91
+#define AnforderungFALSE_AusTemp2            92
+#define AnforderungFALSE_AusTemp3            93
 #define AnforderungTRUE                     100
 #define AnforderungTRUE_Temp2               110
 #define AnforderungTRUE_Temp3               120
+
 
 #define  HKtMax                   600
 #define  HKHysterese              20
@@ -199,6 +196,8 @@ uint8_t  WWSollTempVorgabe     = 45; //ToDo: Abfragen
 #define  WWSpreizung              30
 
 char buffer[30]; //Allgemeiner Buffer 
+int16_t ValueX10new1;
+
 #define EEPROM_Offset_Stagnation   0
 #define EEPROM_Offset_owArray    100
 

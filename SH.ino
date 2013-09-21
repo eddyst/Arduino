@@ -34,7 +34,7 @@ void loop() {
   AllgDoEvents();
   ethDoEvents();
   vitoDoEvents();
-  oneWireDoEvents();
+  doEventsOWMaster();
   WWDoEvents();
   HKDoEvents();
   ThermeDoEvents(); 

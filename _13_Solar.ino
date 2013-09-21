@@ -73,7 +73,7 @@ void SolarDoEvents (){
     }
     break;
   case SolarStatus_AN_5: 
-    if (Values[_KollektorWTVorlauf].ValueX10 < Values[_SpeicherA5].ValueX10 + 5){// Wenn keine Wärmeleistung mehr dann aus
+    if (Values[_KollektorWTVorlauf].ValueX10 < Values[_SpeicherA5].ValueX10 + 10){// Wenn keine Wärmeleistung mehr dann aus
      digitalWrite(SolarPumpeAnPin, LOW);
       Status = SolarStatus_AUS;
     } else { // ansonsten püfen ob warm genug für Ebene 4

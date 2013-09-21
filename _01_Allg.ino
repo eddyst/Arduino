@@ -62,12 +62,6 @@ boolean parseHexChar(const char& input, uint8_t& output) {
   return false;
 }
 
-boolean iif(const boolean value, uint8_t TrueValue, uint8_t FalseValue) {
-  if (value) 
-    return TrueValue;
-  else
-    return FalseValue;
-}
 
 
 

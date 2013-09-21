@@ -78,11 +78,11 @@ void ethDoEvents() {
                 i++;
               }
               if(ethInBuffer[4] == 'W' && ethInBuffer[5] == 'W') {
-                if( Value * 10 > WWtMax - WWHysterese) {
-                  Value = WWtMax - WWHysterese;
+                if( Value * 10 > WWtMax) {
+                  Value = WWtMax;
                   if (wwLogLevel > 0) {
                     Debug.print   ( F("WW: WWSpeicherTempSoll ueberschreitet max "));
-                    Debug.println ( WWtMax - WWHysterese );
+                    Debug.println ( WWtMax);
                   }
                 } 
                 else {

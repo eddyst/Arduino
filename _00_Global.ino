@@ -201,3 +201,7 @@ int16_t ValueX10new1;
 #define EEPROM_Offset_Stagnation   0
 #define EEPROM_Offset_owArray    100
 
+#define MIN(a,b)			((a<b)?(a):(b))
+#define MAX(a,b)			((a>b)?(a):(b))
+#define ABS(x)				((x>0)?(x):(-x))
+

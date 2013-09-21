@@ -32,16 +32,19 @@ void WWDoEvents (){
   if ( digitalRead( WWVentilRuecklauf) == LOW) {
     if ( Values[ _WWRuecklaufTemp].ValueX10 != ValueUnknown
       && Values[ _SpeicherA2     ].ValueX10 != ValueUnknown
-      && Values[ _WWRuecklaufTemp].ValueX10 > Values[ _SpeicherA2].ValueX10 + 5) {
+      && Values[ _SpeicherA3     ].ValueX10 != ValueUnknown
+      && (  Values[ _WWRuecklaufTemp].ValueX10 >= Values[ _SpeicherA2].ValueX10 
+      ||Values[ _WWRuecklaufTemp].ValueX10 >= Values[ _SpeicherA3].ValueX10 + 20)
+      )  {
       digitalWrite( WWVentilRuecklauf, HIGH);
     }
   } 
   else {
-    if ( Values[ _WWRuecklaufTemp].ValueX10 < Values[ _SpeicherA2].ValueX10) {
+    if ( Values[ _WWRuecklaufTemp].ValueX10 < Values[ _SpeicherA3].ValueX10) {
       digitalWrite( WWVentilRuecklauf, LOW); 
     } 
   }
-  if ( setValue( _WWVentil, iif(digitalRead( WWVentilRuecklauf) == HIGH, 10, 0)) && wwLogLevel > 1) {
+  if ( setValue( _WWVentil, (digitalRead( WWVentilRuecklauf) == HIGH) ? 10: 0) && wwLogLevel > 1) {
     Debug.print   ( F("WW: WWVentil Zugewiesen: "));
     Debug.println   ( Values[_WWVentil].ValueX10);
   }
@@ -68,7 +71,7 @@ void WWAnforderungBerechnen () {
   } 
   else if (ValueX10new1 == AnforderungTRUE) {  //Die Anforderung ist bereits aktiv -> kömmer nu endlich AUS?
     if      ( Values[_WWSpeicherTemp1].ValueX10 > Values[_WWSpeicherTempSoll].ValueX10 + WWHysterese                   ) ValueX10new1 = AnforderungFALSE_AusTemp1;
-    else if ( Values[_SpeicherA1     ].ValueX10 > Values[_WWSpeicherTempSoll].ValueX10 + WWHysterese + WWSpreizung * 2 ) ValueX10new1 = AnforderungFALSE_AusTemp2;
+//    else if ( Values[_SpeicherA1     ].ValueX10 > Values[_WWSpeicherTempSoll].ValueX10 + WWHysterese + WWSpreizung * 2 ) ValueX10new1 = AnforderungFALSE_AusTemp2;
     else if ( Values[_SpeicherA2     ].ValueX10 > Values[_WWSpeicherTempSoll].ValueX10 + WWHysterese + WWSpreizung     ) ValueX10new1 = AnforderungFALSE_AusTemp3;
     else {
       ValueX10new1 = AnforderungTRUE;
@@ -136,6 +139,8 @@ int16_t Max( int16_t Value1, int16_t Value2) {
   else
     return Value2;
 }
+
+
 
 
 

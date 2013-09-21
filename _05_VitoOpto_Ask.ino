@@ -1,6 +1,5 @@
 #include <Vitodens.h>
 Vitodens Vito(&Serial1);
-//Vitodens Vito(&Serial1, &Debug);
 
 void VitoInit(){
   Vito.attach(VitoDebugMsg);

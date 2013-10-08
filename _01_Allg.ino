@@ -6,7 +6,7 @@ Clock g_Clock;
 
 void AllgInit() {
   pinMode     (NotbetriebPin              , INPUT_PULLUP); //Kein Schalter = Schalter offen = Pin HIGH = Notbetrieb
-  g_Clock.SetTimezoneOffset(1,0); // Setup the clock. In Germany we are 1 hours ahead of GMT 
+  g_Clock.SetTimezoneOffset(2,0); // Setup the clock. In Germany we are 1 hours ahead of GMT  (2 zur Sommerzeit)
 }
 
 void   AllgDoEvents() {

@@ -13,10 +13,11 @@
 #define SteuerungStatusSolarBetriebWarteAufAUSbetrieb      40
 #define SteuerungStatusSolarBetrieb                        60
 
-#define PumpennachlaufStart -30
-#define Pumpennachlauf      -20
-#define AnforderungGesperrt -10
-#define WarteAufAnforderung   0
+#define PumpennachlaufStart   -40
+#define PumpennachlaufBrenner -30
+#define Pumpennachlauf        -20
+#define AnforderungGesperrt   -10
+#define WarteAufAnforderung     0
 
 #include <Bounce.h>
 
@@ -147,12 +148,21 @@ void BerechneThermeVorlaufValue() {
   switch ( ValueX10new1) { //Pumpennachlauf
   case PumpennachlaufStart:
     analogWrite( ThermeVorlaufTempVorgabePin, 0);
-    //    warteSeit1 = millis();
-    ValueX10new1 = Pumpennachlauf;
+    ValueX10new1 = PumpennachlaufBrenner;
     if (thermeLogLevel > 1) {
       Debug.print  ( F("Therme "));
       Debug.print  ( millis());
-      Debug.println( F(": analogWrite( ThermeVorlaufTempVorgabePin, 0); Pumpennachlauf"));
+      Debug.println( F(": analogWrite( ThermeVorlaufTempVorgabePin, 0); PumpennachlaufBrenner"));
+    }
+    break;
+  case PumpennachlaufBrenner:
+    if ( Values[_ThermeBrennerLeistung].ValueX10 == 0) {
+      ValueX10new1 = Pumpennachlauf;
+      if (thermeLogLevel > 1) {
+        Debug.print  ( F("Therme "));
+        Debug.print  ( millis());
+        Debug.println( F(": Pumpennachlauf"));
+      }
     }
     break;
   case Pumpennachlauf:
@@ -181,11 +191,12 @@ void BerechneThermeVorlaufValue() {
   default:
     uint16_t  TempSollMax = 0; 
     if (Values[_HKAnforderung].ValueX10 >= AnforderungTRUE) {
-      TempSollMax = Values[_HKVorlaufTempSoll].ValueX10 + HKHysterese + HKSpreizung * 2;
+      TempSollMax = Values[ _HKVorlaufTempSoll].ValueX10 + HKHysterese + HKSpreizung * 2;
     }
-    if (Values[_WWAnforderung].ValueX10 >= AnforderungTRUE
-      && TempSollMax < Values[_WWSpeicherTempSoll].ValueX10 + WWHysterese + WWSpreizung * 2) {
-      TempSollMax = Values[_WWSpeicherTempSoll].ValueX10 + WWHysterese + WWSpreizung * 2;
+    if (Values[_WWAnforderung].ValueX10 >= AnforderungTRUE) {
+      TempSollMax = Max( TempSollMax, Values[ _WWSpeicherTempSoll].ValueX10 + WWHysterese + WWSpreizung + Max( 0, Values[ _WWSpeicherTempSoll].ValueX10 - Values[ _WWSpeicherTemp1].ValueX10) * 2);
+      //                 Wert von HK übernehmen falls grüßer
+      //                              Temp muß hoch genug sein, also Soll + Hysterese + Spreizung + (Delta T * 2 aber nur wenn größer 0 - damit Heizen wir mehr wenn großer Verbrauch die Temp. stärker drückt)
     }
 
     if ( TempSollMax > 1036 / 7) {
@@ -232,10 +243,11 @@ void BerechneThermeVentilVorlaufPin(){
     }
   } 
   else {
-    if ( Values[_ThermeVorlaufValue].ValueX10 < WarteAufAnforderung) {                     //Wenn Therme gerade abgeschalten hat
-      if ( Values[ _ThermeVorlaufTempIst].ValueX10 <= Values[ _SpeicherA2].ValueX10 + 20) {//erst 2° unter SpeicherA2 runter schalten
+    if (    Values[_ThermeVorlaufValue].ValueX10 >= Pumpennachlauf
+         && Values[_ThermeVorlaufValue].ValueX10 < WarteAufAnforderung) {                     //Wenn Therme gerade abgeschalten hat
+      //if ( Values[ _ThermeVorlaufTempIst].ValueX10 <= Values[ _SpeicherA2].ValueX10 + 20) {//erst 2° unter SpeicherA2 runter schalten
         digitalWrite( ThermeVentilVorlaufPin, LOW);
-      }
+      //}
     }
     else { 
       if ( Values[ _ThermeVorlaufTempIst].ValueX10 <= Values[ _SpeicherA1].ValueX10 - 20) { //normal bei 2° unter A1 runter schalten

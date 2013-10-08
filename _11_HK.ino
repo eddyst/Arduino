@@ -1,19 +1,30 @@
 #define HKPumpeAnPin         31
-#define HKMischerBewegenPin  32
-#define HKMischerRichtungPin 33
 
-#define KAELTER LOW
+#define HKPinKalibrieren  45
+#define HKPinSleep        39
+#define HKPinDirection    41
+#define HKPinDoStep       43
+
+#define StepperSpeed  120
 #define WAERMER HIGH
-#define HKBEWEGEN HIGH
-#define HKSTOP    LOW
+#define KAELTER !WAERMER
+
+uint32_t pos = 0;
+uint32_t Schritte         = 1000000;
+int32_t SFehlerMin       = 0;
+int32_t SFehlerMax       = 0;
+uint8_t  Error            = 0;
+#define ErrKeinSensor 1
+
 void HKInit(){
   pinMode     (HKPumpeAnPin        , OUTPUT   );
   digitalWrite(HKPumpeAnPin        , LOW      );
-  pinMode     (HKMischerRichtungPin, OUTPUT   );  // Zum initialisieren Mischer erstmal zu drehen 
-  digitalWrite(HKMischerRichtungPin, KAELTER  );
-  pinMode     (HKMischerBewegenPin , OUTPUT   );
-  digitalWrite(HKMischerBewegenPin , HKSTOP);
-  Values[_HKVorlaufValue].ValueX10 = 0;
+   pinMode(HKPinKalibrieren, INPUT_PULLUP);
+   pinMode(HKPinSleep      , OUTPUT);
+   pinMode(HKPinDirection  , OUTPUT);
+   pinMode(HKPinDoStep     , OUTPUT);
+//   kalibrieren ();
+  
 }
 
 void HKSolarbetriebBeginnt() {
@@ -24,98 +35,84 @@ void HKSolarbetriebEndet() {
 } 
 
 void   HKDoEvents() {
-  //HKMischerRichtungPin  HKMischerBewegenPin  HKSollTempVorgabe
-  int8_t  Anforderung = AnforderungNOT_INITIALIZED;
+  HKAnforderung();
+  //  HKVentil ();
+}
+
+void HKAnforderung() {
+  ValueX10new1 = AnforderungNOT_INITIALIZED;
   static uint32_t AnforderungSeit;
   if (Values[_HKAnforderung].ValueX10 < AnforderungTRUE) { // Es ist noch keine Anforderung aktiv -> prüfen was gegen einschalten spricht
-    if      ( Values[_HKVorlaufTemp1].ValueX10 == ValueUnknown                       ) Anforderung = AnforderungFALSE_Temp1_UNKNOWN;
-    else if ( Values[_HKVorlaufTemp1].ValueX10 >= Values[_HKVorlaufTempSoll].ValueX10) Anforderung = AnforderungFALSE_Temp1;
-    else if ( Values[_SpeicherA2    ].ValueX10 == ValueUnknown                       ) Anforderung = AnforderungFALSE_Temp2_UNKNOWN;
-    else if ( Values[_SpeicherA2    ].ValueX10 >= Values[_HKVorlaufTempSoll].ValueX10) Anforderung = AnforderungFALSE_Temp2; 
-    else if ( Values[_SpeicherA3    ].ValueX10 == ValueUnknown                       ) Anforderung = AnforderungFALSE_Temp3_UNKNOWN;
-    else if ( millis() - AnforderungSeit > 300000                                    ) Anforderung = AnforderungFALSE_Zeitlimit; 
-    else                                                                               Anforderung = AnforderungTRUE;
-    if ( Anforderung < AnforderungFALSE_Zeitlimit){ // Die Einschaltkriterien sind nicht erfüllt
+    if      ( Values[_HKVorlaufTemp1].ValueX10 == ValueUnknown                       ) ValueX10new1 = AnforderungFALSE_Temp1_UNKNOWN;
+    else if ( Values[_HKVorlaufTemp1].ValueX10 >= Values[_HKVorlaufTempSoll].ValueX10) ValueX10new1 = AnforderungFALSE_Temp1;
+    else if ( Values[_SpeicherA2    ].ValueX10 == ValueUnknown                       ) ValueX10new1 = AnforderungFALSE_Temp2_UNKNOWN;
+    else if ( Values[_SpeicherA2    ].ValueX10 >= Values[_HKVorlaufTempSoll].ValueX10) ValueX10new1 = AnforderungFALSE_Temp2; 
+    else if ( Values[_SpeicherA3    ].ValueX10 == ValueUnknown                       ) ValueX10new1 = AnforderungFALSE_Temp3_UNKNOWN;
+    else if ( millis() - AnforderungSeit > 300000                                    ) ValueX10new1 = AnforderungFALSE_Zeitlimit; 
+    else                                                                               ValueX10new1 = AnforderungTRUE;
+    if ( ValueX10new1 < AnforderungFALSE_Zeitlimit){ // Die Einschaltkriterien sind nicht erfüllt
       AnforderungSeit = millis();      //Wartezeit  zurücksetzen
     }
   } 
   else {                                           //Die Anforderung ist bereits aktiv -> kömmer nu endlich AUS?
-    if      ( Values[_SpeicherA1].ValueX10 < Values[_HKVorlaufTempSoll].ValueX10 + HKHysterese) Anforderung = AnforderungTRUE_Temp2;
-    else if ( Values[_SpeicherA2].ValueX10 < Values[_HKVorlaufTempSoll].ValueX10 + HKHysterese) Anforderung = AnforderungTRUE_Temp3;
-    else                                                                              Anforderung = AnforderungFALSE_Ausschaltkriterien;
+    if      ( Values[_SpeicherA1].ValueX10 < Values[_HKVorlaufTempSoll].ValueX10 + HKHysterese) ValueX10new1 = AnforderungTRUE_Temp2;
+    else if ( Values[_SpeicherA2].ValueX10 < Values[_HKVorlaufTempSoll].ValueX10 + HKHysterese) ValueX10new1 = AnforderungTRUE_Temp3;
+    else                                                                              ValueX10new1 = AnforderungFALSE_Ausschaltkriterien;
   }
-  if ( setValue( _HKAnforderung, Anforderung) && hkLogLevel > 1) {
+  if ( setValue( _HKAnforderung, ValueX10new1) && hkLogLevel > 1) {
     Debug.print   ( F("Therme: HKAnforderung Zugewiesen: "));
     Debug.println ( Values[_HKAnforderung].ValueX10);
   }
-
-  //  if (Solarbetrieb) {
-  if ( Values[_HKVorlaufTemp2].ValueX10 != ValueUnknown) { //Wenn die Vorlauftemperatur nicht gesetzt wurde können wir nichts regeln
-    if ( Values[_HKVorlaufTemp2].ValueX10 > 600) {  // Zudrehen!!!!
-      if (hkLogLevel > 0) Debug.println ("HK: ! >600 = soKALTwiesGEHT");
-      digitalWrite (HKMischerRichtungPin, KAELTER );
-      digitalWrite (HKMischerBewegenPin , HKBEWEGEN);
-    }     
-    else {
-      static uint32_t lastMove = millis() - 60000;
-      static int16_t lTemp = Values[_HKVorlaufTemp2].ValueX10;
-      if (millis() - lastMove > 60000) {                         // Wenn min ? Sekunden seit letzter Bewegung
-        //Wir haben keine genaue Info zur Ventilpossition deswegen zählen wir hilfsweise bei jeder Bewegung die Schritte in eine Richtung
-        if ( lTemp - Values[_HKVorlaufTemp2].ValueX10 < 0) { //Temperatur ist gestiegen
-          if ( hkLogLevel > 1) {
-            Debug.print  ( F("HK: Temp gestiegen"));
-            Debug.print  (lTemp);
-            Debug.print  ( F(" -> "));
-            Debug.println(Values[_HKVorlaufTemp2].ValueX10);
-          }
-          int16_t d = -1 * abs(Values[_HKVorlaufTemp2].ValueX10 - Values[_HKVorlaufTempSoll].ValueX10) * 120 + 300;
-          hkMove (d);
+}
+void HKVentil() {
+  if ( Values[_HKVorlaufTempSoll].ValueX10 != ValueUnknown
+    ||  Values[_HKVorlaufTemp1].ValueX10 != ValueUnknown
+    ||  Values[_HKVorlaufTemp2].ValueX10 != ValueUnknown
+    ||  Values[_HKRuecklaufTemp2].ValueX10 != ValueUnknown) { //Wenn die Vorlauftemperatur nicht gesetzt wurde können wir nichts regeln
+#define posIntervall 10000  // 10Sek
+    static uint32_t rechnenMillis = millis() - posIntervall;
+    if (millis() - rechnenMillis >= posIntervall ) {
+      rechnenMillis = millis();
+      ValueX10new1 = Values[_HKVorlaufValue].ValueX10;
+      if ( Values[_HKVorlaufTemp2].ValueX10 > 600) {  // Zudrehen!!!!
+        if (hkLogLevel > 0) Debug.println ("HK: ! >600 = soKALTwiesGEHT");
+        ValueX10new1 = 0;
+      }     
+      else if (Values[_HKVorlaufTemp1].ValueX10<Values[_HKVorlaufTempSoll].ValueX10 && Values[_HKRuecklaufTemp2].ValueX10 < Values[_HKVorlaufTempSoll].ValueX10) {
+        ValueX10new1 = Schritte;
+      }
+      else if (Values[_HKVorlaufTemp1].ValueX10 > Values[_HKVorlaufTempSoll].ValueX10 && Values[_HKRuecklaufTemp2].ValueX10 > Values[_HKVorlaufTempSoll].ValueX10) {
+        ValueX10new1 =  0;
+      } 
+      else {
+#define Fak 1000 //Vermeidet Rundungsdifferenzen beim dividieren
+        uint32_t bPos, iPos, sPos;
+        if (Values[_HKVorlaufTempSoll].ValueX10 == Values[_HKRuecklaufTemp2].ValueX10) { //Division durch null abfangen
+          bPos = 0;
         } 
-        else if ( lTemp - Values[_HKVorlaufTemp2].ValueX10 > 0 ) { 
-          if ( hkLogLevel > 1) {
-            Debug.print  ( F("HK: Temp gefallen"));
-            Debug.print  (lTemp);
-            Debug.print  ( F(" -> "));
-            Debug.println(Values[_HKVorlaufTemp2].ValueX10);
-          }
-            int16_t d = abs(Values[_HKVorlaufTemp2].ValueX10 - Values[_HKVorlaufTempSoll].ValueX10) * 120 + 400;
-            hkMove (d);
+        else {
+          bPos = Schritte * Fak / ( Fak + Fak * ( Values[_HKVorlaufTemp1].ValueX10 - Values[_HKVorlaufTempSoll].ValueX10) / ( Values[_HKVorlaufTempSoll].ValueX10 - Values[_HKRuecklaufTemp2].ValueX10));
         }
-        lTemp = Values[_HKVorlaufTemp2].ValueX10;
-        lastMove=millis();  
+        if (Values[_HKVorlaufTemp2].ValueX10 == Values[_HKRuecklaufTemp2].ValueX10) { //Division durch null abfangen
+          iPos = 0;
+        } 
+        else {
+          iPos = Schritte * Fak / ( Fak + Fak * ( Values[_HKVorlaufTemp1].ValueX10 - Values[_HKVorlaufTemp2].ValueX10      ) / ( Values[_HKVorlaufTemp2].ValueX10       - Values[_HKRuecklaufTemp2].ValueX10));
+        }
+        sPos = sqrt(pos * abs(pos + 0.001 * (bPos - iPos)));
+        ValueX10new1 = sPos;
+        Debug.print  ( F ("bPos "));
+        Debug.print  (     bPos   );
+        Debug.print  ( F (" iPos "));
+        Debug.print  (      iPos   );
+        Debug.print  ( F (" pos "));
+        Debug.print  (      pos   );
+        Debug.print  ( F (" -> "));
+        Debug.println( sPos);
       }
     }
   }
-  // } 
 }
-
-void hkMove ( int16_t d) {
-  if ( hkLogLevel > 1) {
-    Debug.println ( F( " move  "));
-    Debug.println (d);
-  }
-  if ( d < -1000) d = -1000;
-  if ( d >  1000) d =  1000;
-  if ( d < 0 )
-    digitalWrite (HKMischerRichtungPin, KAELTER );
-  else
-    digitalWrite (HKMischerRichtungPin, WAERMER );
-  digitalWrite (HKMischerBewegenPin , HKBEWEGEN);
-  delay(abs(d));
-  digitalWrite (HKMischerBewegenPin , HKSTOP);
-  if ( (Values[_HKVorlaufValue].ValueX10 > 0 && d < 0) 
-    || (Values[_HKVorlaufValue].ValueX10 < 0 && d > 0) )
-    Values[_HKVorlaufValue].ValueX10 = 0;
-  Values[_HKVorlaufValue].ValueX10 += d / 100;
-  Values[_HKVorlaufValue].Changed = 1;
-  if (hkLogLevel > 0) {
-    Debug.print  ( F("    HKVorlaufValue = "));
-    Debug.println(Values[_HKVorlaufValue].ValueX10);
-  }
-}
-
-
-
 
 
 

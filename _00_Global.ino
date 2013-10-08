@@ -21,6 +21,8 @@ prog_char FHEM_HKVorlaufTemp2             [] PROGMEM =  "HKVorlaufTemp2";
 prog_char FHEM_HKVorlaufTempSoll          [] PROGMEM =  "HKVorlaufTempSoll";
 #define       _HKVorlaufValue              5
 prog_char FHEM_HKVorlaufValue             [] PROGMEM =  "HKVorlaufValue";
+#define       _HKVorlaufSollValue              44
+prog_char FHEM_HKVorlaufSollValue             [] PROGMEM =  "HKVorlaufSollValue";
 
 #define       _KollektorAusdehnung         6
 prog_char FHEM_KollektorAusdehnung        [] PROGMEM =  "KollektorAusdehnung";
@@ -161,7 +163,9 @@ data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
                  { 0, ValueUnknown, FHEM_WWSpeicherTemp2            },  
                  { 0, ValueUnknown, FHEM_WWSpeicherTempSoll         },  
                  { 0, ValueUnknown, FHEM_WWVentil                   },  
-                 { 0, ValueUnknown, FHEM_WWVorlaufTemp              }
+                 { 0, ValueUnknown, FHEM_WWVorlaufTemp              },
+
+                 { 0, ValueUnknown, FHEM_HKVorlaufSollValue         } 
                 };
 
 #define ThermeBetriebsartAbschalten       0

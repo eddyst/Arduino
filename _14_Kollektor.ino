@@ -1,13 +1,13 @@
 #define KollektorPumpeAnPin         34        
 
-#define KollektorTryIntervall           360000
-#define KollektorTryDauer                60000
-#define KollektorWartezeitNachAnBevorAus 60000
+#define KollektorTryIntervall            330000 //9,5 min
+#define KollektorTryDauer                 30000 //30 sec
+#define KollektorWartezeitNachAnBevorAus 120000
 
 //#include <Servo.h> //
 //Servo servoKollektor;  // create servo object to control a servo a maximum of eight servo objects can be created 
 
-uint32_t Stagnation = 0;
+uint32_t KollektorGesperrtBisZp = 0;
 
 void   KollektorInit() {
   pinMode     (KollektorPumpeAnPin, OUTPUT);   
@@ -19,7 +19,7 @@ void   KollektorInit() {
   //  digitalWrite(PumpeKollektorServoEnabledPin, LOW   );
 
   for (uint8_t i = 0; i < 4; i++) {
-    Stagnation = (Stagnation << 8) | EEPROM.read(EEPROM_Offset_Stagnation + i);
+    KollektorGesperrtBisZp = (KollektorGesperrtBisZp << 8) | EEPROM.read(EEPROM_Offset_Stagnation + i);
   }
 }
 
@@ -27,6 +27,7 @@ void   KollektorInit() {
 #define KollektorStatus_UNKNOWN_KollektorWTVorlauf   -30
 #define KollektorStatus_UNKNOWN_SpeicherA5           -20
 #define KollektorStatus_Stagnation                   -10
+#define KollektorStatus_Sperrzeit                     -5
 #define KollektorStatus_AUS                            0
 #define KollektorStatus_TRY                           10
 #define KollektorStatus_AN                            20
@@ -37,11 +38,11 @@ void KollektorDoEvents (){
   static uint32_t millis1 = millis();
   static int8_t Status = KollektorStatus_UNKNOWN_Uhrzeit;
   if (Status > KollektorStatus_Stagnation 
-    && Values[_KollektorWTVorlauf].ValueX10 >  900         ) { //Es wird zu warm 
-    Stagnation = zp / 86400 * 86400 + 111600;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 7h = morgen um 7 ist Kollektor wieder freigegeben
+    && Values[_KollektorWTVorlauf].ValueX10 >  900         ) {             //Es wird zu warm 
+    KollektorGesperrtBisZp = zp / 86400 * 86400 + 111600;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 7h = morgen um 7 ist Kollektor wieder freigegeben
     digitalWrite(KollektorPumpeAnPin, LOW);
     for (uint8_t i = 0; i < 4; i++) {
-      EEPROM.write(EEPROM_Offset_Stagnation + 3 - i, (Stagnation >> (8 * i)) & 255);
+      EEPROM.write(EEPROM_Offset_Stagnation + 3 - i, (KollektorGesperrtBisZp >> (8 * i)) & 255);
     }
     Status = KollektorStatus_Stagnation;
     if( kollLogLevel > 0) {
@@ -63,8 +64,9 @@ void KollektorDoEvents (){
     if (Values[_SpeicherA5].ValueX10 != ValueUnknown) 
       Status = KollektorStatus_Stagnation;
     break;
+  case KollektorStatus_Sperrzeit:
   case KollektorStatus_Stagnation:
-    if (zp > Stagnation) {
+    if (zp > KollektorGesperrtBisZp) {
       millis1 = millis() - KollektorTryIntervall;  // Wir brauchen jetzt keine zusätzliche Wartezeit
       Status = KollektorStatus_AUS;
     }
@@ -94,8 +96,13 @@ void KollektorDoEvents (){
   }
   if (Status == KollektorStatus_AUSschalten) {
     digitalWrite(KollektorPumpeAnPin, LOW);
-    millis1 = millis();
-    Status = KollektorStatus_AUS;
+    if (g_Clock.GetDateTime(zp).Hour > 20) { // Wenn es schon nach 20Uhr ist, wird keine Wärme mehr kommen. Deswegen verhindern wir das Try
+      KollektorGesperrtBisZp = zp / 86400 * 86400 + 111600;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 7h = morgen um 7 ist Kollektor wieder freigegeben
+      Status = KollektorStatus_Sperrzeit;
+}    else {
+      millis1 = millis();
+      Status = KollektorStatus_AUS;
+    }
   }
   if ( setValue( _KollektorStatus, Status) && kollLogLevel > 0) {
     Debug.print( F("Koll: Status Zugewiesen: "));           

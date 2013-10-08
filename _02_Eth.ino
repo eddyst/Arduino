@@ -54,7 +54,7 @@ void ethDoEvents() {
               && ethInBuffer[2] == 'l'
               && ethInBuffer[3] == 'l'
               && ethInBuffer[6] == '=' ) {
-              if (ethLogLevel > 1) Debug.println(F(" = SollTempVorgabe"));
+              if (ethLogLevel > 1) Debug.println(F(" = SollVorgabe"));
               uint8_t digit;
               uint8_t i = 7;
               int16_t Value = 0;

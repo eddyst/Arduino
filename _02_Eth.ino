@@ -23,9 +23,14 @@ void EthInit() {
   }
 }
 
+uint8_t digit;
+uint8_t  HexCharIndex, AddrByteIndex, Addr[7];
+int16_t Value;
+
+boolean First;
 void ethDoEvents() {
   static boolean lastConnected = false;                 // state of the connection last time through the main loop
-  boolean First = true;
+  First = true;
   while (client.available()) {   // if there's incoming data from the net connection.
     char c = client.read();   
     if ( First){    
@@ -55,17 +60,17 @@ void ethDoEvents() {
               && ethInBuffer[3] == 'l'
               && ethInBuffer[6] == '=' ) {
               if (ethLogLevel > 1) Debug.println(F(" = SollVorgabe"));
-              uint8_t digit;
-              uint8_t i = 7;
-              int16_t Value = 0;
-              while(i < ethInBufferCount && i < 9) {
+              digit;
+              tmpUint8_1 = 7;
+              Value = 0;
+              while(tmpUint8_1 < ethInBufferCount && tmpUint8_1 < 9) {
                 if (ethLogLevel > 2) {
                   Debug.print  ( F("  ethInBuffer["));
-                  Debug.print  ( i);
+                  Debug.print  ( tmpUint8_1);
                   Debug.print  ( F("] = ")); 
-                  Debug.print  ( ethInBuffer[i]);
+                  Debug.print  ( ethInBuffer[tmpUint8_1]);
                 }
-                if (parseHexChar(ethInBuffer[i], digit)) {//Wir können mit parseHexChar arbeiten weils nur 1 Stelle ist
+                if (parseHexChar(ethInBuffer[tmpUint8_1], digit)) {//Wir können mit parseHexChar arbeiten weils nur 1 Stelle ist
                   Value = Value * 10 + digit;
                   if (ethLogLevel > 2) {
                     Debug.print  ( F("  Value ="));
@@ -75,7 +80,7 @@ void ethDoEvents() {
                 else {
                   if (ethLogLevel > 0) Debug.println(F(" parseHexChar == false"));
                 }
-                i++;
+                tmpUint8_1++;
               }
               if(ethInBuffer[4] == 'W' && ethInBuffer[5] == 'W') {
                 if( Value * 10 > WWtMax) {
@@ -113,29 +118,30 @@ void ethDoEvents() {
               && ethInBuffer[2] == 'A' 
               && ethInBuffer[5] == '=' ) {
               if (ethLogLevel > 1) Debug.println( F( " = OneWireAddresse"));
-              uint8_t digit;
-              uint8_t owArrayIndex = 0;
+              tmpUint8_1 = 0;
               if (!parseHexChar(ethInBuffer[3], digit)) {
                 if ( ethLogLevel > 0) Debug.println( F( "\neth: owAddr: 1. Stelle der Addresse nicht nummerisch!")); 
               }
               else {
-                owArrayIndex = digit * 16;
+                tmpUint8_1 = digit * 16;
                 if (!parseHexChar(ethInBuffer[4], digit)) {
                   if (ethLogLevel > 0) Debug.println( F("\neth: owAddr: 2. Stelle der Addresse nicht nummerisch!")); 
                 }
                 else {
-                  owArrayIndex+= digit;
+                  tmpUint8_1+= digit;
                 }
-                uint8_t i = 6, HexCharIndex = 0, AddrByteIndex = 0, Addr[7];
+                tmpUint8_2 = 6;
+                HexCharIndex = 0;
+                AddrByteIndex = 0;
                 boolean AfterFirstChar = false;
-                while(i < ethInBufferCount && AddrByteIndex < 8) {
+                while(tmpUint8_2 < ethInBufferCount && AddrByteIndex < 8) {
                   if (ethLogLevel > 2) {
                     Debug.print( F ( "  ethInBuffer["));
-                    Debug.print(i);
+                    Debug.print(tmpUint8_2);
                     Debug.print( F ( "] = ")); 
-                    Debug.println(ethInBuffer[i]);
+                    Debug.println(ethInBuffer[tmpUint8_2]);
                   }
-                  if (parseHexChar(ethInBuffer[i], digit)) {
+                  if (parseHexChar(ethInBuffer[tmpUint8_2], digit)) {
                     AfterFirstChar=true;
                     if(HexCharIndex > 1) {
                       HexCharIndex = 0; 
@@ -170,7 +176,7 @@ void ethDoEvents() {
                       AddrByteIndex++;
                     }
                   }
-                  i++;
+                  tmpUint8_2++;
                 } 
                 if (ethLogLevel > 2) Debug.println(AddrByteIndex);
                 if( AddrByteIndex != 7) {
@@ -178,15 +184,15 @@ void ethDoEvents() {
                 }
                 else {
                   for (AddrByteIndex=0; AddrByteIndex < 8; AddrByteIndex++) {
-                    if (EEPROM.read( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex) != Addr[AddrByteIndex]){
+                    if (EEPROM.read( EEPROM_Offset_owArray + tmpUint8_1 * 8 + AddrByteIndex) != Addr[AddrByteIndex]){
                       if (ethLogLevel > 0) {
                         Debug.print  ( F( "\neth:     Schreibe EEPROM(")); 
-                        Debug.print  ( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex); 
+                        Debug.print  ( EEPROM_Offset_owArray + tmpUint8_1 * 8 + AddrByteIndex); 
                         Debug.print  ( F( ", ")); 
                         Debug.print  ( Addr[AddrByteIndex], HEX); 
                         Debug.println(F(")")); 
                       }
-                      EEPROM.write( EEPROM_Offset_owArray + owArrayIndex * 8 + AddrByteIndex, Addr[AddrByteIndex]);
+                      EEPROM.write( EEPROM_Offset_owArray + tmpUint8_1 * 8 + AddrByteIndex, Addr[AddrByteIndex]);
                     }
                   }
                   if (ethLogLevel > 1) Debug.println( F("\neth: owAddr: OK"));
@@ -222,8 +228,16 @@ void ethDoEvents() {
     static uint8_t connectionErrors = 0;
     if (client.connect( "hm.fritz.box", 7072)) {    // try to get a connection, report back via serial:
       if (ethLogLevel > 0) Debug.println(F("\neth: connected"));
-      connectionErrors = 0;
+      static boolean BootLog = true;
       client.println( F ( ""));
+      if (BootLog) {
+        client.println( F ( "{SteuerungBoot}"));
+        BootLog == false;
+      } 
+      else {
+        client.println( F ( "{SteuerungReconnect}"));
+      }
+      connectionErrors = 0;
     } 
     else {        // if you didn't get a connection to the server:
       if (ethLogLevel > 0) Debug.println( F( "\neth: connection failed"));
@@ -320,6 +334,7 @@ void ethDoEvents() {
   }
   lastConnected = client.connected();    // store the state of the connection for next time through the loop
 }
+
 
 
 

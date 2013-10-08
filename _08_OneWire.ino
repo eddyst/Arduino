@@ -206,32 +206,32 @@ void doEventsOWMaster() {
       }
     } 
     else {
-      for (uint8_t i = 0; i < sizeof(owArray); i++) {
+      for (tmpUint8_1 = 0; tmpUint8_1 < sizeof(owArray); tmpUint8_1++) {
         boolean OK = true;
         if (owLogLevel > 3) {
-          Debug.print( F(" i = "));
-          Debug.print(i, DEC);  
+          Debug.print( F(" tmpUint8_1 = "));
+          Debug.print(tmpUint8_1, DEC);  
         }      
-        for (uint8_t b = 0; b < 8; b++) {
-          uint8_t ee = EEPROM.read( EEPROM_Offset_owArray + i * 8 + b);
+        for (tmpUint8_2 = 0; tmpUint8_2 < 8; tmpUint8_2++) {
+          tmpUint8_3 = EEPROM.read( EEPROM_Offset_owArray + tmpUint8_1 * 8 + tmpUint8_2);
           if (owLogLevel > 3){ 
             Debug.print( F("   b  = "));
-            Debug.print(b,DEC);
+            Debug.print( tmpUint8_2,DEC);
             Debug.print( F("   ee( "));
-            Debug.print(i * 8 + b,DEC);
+            Debug.print( tmpUint8_1 * 8 + tmpUint8_2,DEC);
             Debug.print( F(" ) = "));
-            Debug.print(ee,DEC);
+            Debug.print( tmpUint8_3, DEC);
           }
-          if (owAddr[b] != ee) {
+          if (owAddr[tmpUint8_2] != tmpUint8_3) {
             if (owLogLevel > 3) Debug.println( F(" --- NOT EQUAL --- "));
             OK = false;
             break;
           }
         }
         if (OK) {
-          if ( setValue( owArray[i], celsius * 10) && owLogLevel > 1) {
+          if ( setValue( owArray[tmpUint8_1], celsius * 10) && owLogLevel > 1) {
             Debug.print( F(" Zugewiesen an "));           
-            Debug.println(owArray[i]); 
+            Debug.println(owArray[tmpUint8_1]); 
           }
           return;
         }

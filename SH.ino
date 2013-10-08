@@ -2,7 +2,7 @@
 #define   allgLogLevel 1
 #define   vitoLogLevel 1
 #define     owLogLevel 1   //0 nix, 1 Fehlermeldungen + unbekannte Addressen, 2 alle Buswechsel u. readings, 3 Statuswechsel, 4  Zuordnung + alles
-#define thermeLogLevel 1
+#define thermeLogLevel 9
 #define     hkLogLevel 1
 #define     wwLogLevel 1
 #define  solarLogLevel 1
@@ -19,6 +19,7 @@ void setup() {
   Debug.println( F ( "Setup"));
   AllgInit();
   EthInit();
+  RS485Init();
   VitoInit();
   ThermeInit();
   HKInit();
@@ -33,6 +34,7 @@ void setup() {
 void loop() {
   AllgDoEvents();
   ethDoEvents();
+  RS485DoEvents();
   vitoDoEvents();
   doEventsOWMaster();
   WWDoEvents();

@@ -18,8 +18,8 @@ void   KollektorInit() {
   //  pinMode     (PumpeKollektorServoEnabledPin, OUTPUT);   
   //  digitalWrite(PumpeKollektorServoEnabledPin, LOW   );
 
-  for (uint8_t i = 0; i < 4; i++) {
-    KollektorGesperrtBisZp = (KollektorGesperrtBisZp << 8) | EEPROM.read(EEPROM_Offset_Stagnation + i);
+  for (tmpUint8_1 = 0; tmpUint8_1 < 4; tmpUint8_1++) {
+    KollektorGesperrtBisZp = (KollektorGesperrtBisZp << 8) | EEPROM.read(EEPROM_Offset_Stagnation + tmpUint8_1);
   }
 }
 
@@ -34,15 +34,15 @@ void   KollektorInit() {
 #define KollektorStatus_AUSschalten                   30
 
 void KollektorDoEvents (){
-  uint32_t zp = g_Clock.GetTimestamp();
+  UhrZp = Uhr.GetTimestamp();
   static uint32_t millis1 = millis();
   static int8_t Status = KollektorStatus_UNKNOWN_Uhrzeit;
   if (Status > KollektorStatus_Stagnation 
     && Values[_KollektorWTVorlauf].ValueX10 >  900         ) {             //Es wird zu warm 
-    KollektorGesperrtBisZp = zp / 86400 * 86400 + 111600;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 7h = morgen um 7 ist Kollektor wieder freigegeben
+    KollektorGesperrtBisZp = UhrZp / 86400 * 86400 + 111600;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 7h = morgen um 7 ist Kollektor wieder freigegeben
     digitalWrite(KollektorPumpeAnPin, LOW);
-    for (uint8_t i = 0; i < 4; i++) {
-      EEPROM.write(EEPROM_Offset_Stagnation + 3 - i, (KollektorGesperrtBisZp >> (8 * i)) & 255);
+    for (tmpUint8_1 = 0; tmpUint8_1 < 4; tmpUint8_1++) {
+      EEPROM.write(EEPROM_Offset_Stagnation + 3 - tmpUint8_1, (KollektorGesperrtBisZp >> (8 * tmpUint8_1)) & 255);
     }
     Status = KollektorStatus_Stagnation;
     if( kollLogLevel > 0) {
@@ -53,7 +53,7 @@ void KollektorDoEvents (){
  
   switch (Status){
   case KollektorStatus_UNKNOWN_Uhrzeit:
-    if (zp > 10000000) 
+    if (UhrZp > 10000000) 
       Status = KollektorStatus_UNKNOWN_KollektorWTVorlauf;
     break;
   case KollektorStatus_UNKNOWN_KollektorWTVorlauf:
@@ -66,7 +66,7 @@ void KollektorDoEvents (){
     break;
   case KollektorStatus_Sperrzeit:
   case KollektorStatus_Stagnation:
-    if (zp > KollektorGesperrtBisZp) {
+    if (UhrZp > KollektorGesperrtBisZp) {
       millis1 = millis() - KollektorTryIntervall;  // Wir brauchen jetzt keine zusätzliche Wartezeit
       Status = KollektorStatus_AUS;
     }
@@ -96,8 +96,8 @@ void KollektorDoEvents (){
   }
   if (Status == KollektorStatus_AUSschalten) {
     digitalWrite(KollektorPumpeAnPin, LOW);
-    if (g_Clock.GetDateTime(zp).Hour > 20) { // Wenn es schon nach 20Uhr ist, wird keine Wärme mehr kommen. Deswegen verhindern wir das Try
-      KollektorGesperrtBisZp = zp / 86400 * 86400 + 111600;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 7h = morgen um 7 ist Kollektor wieder freigegeben
+    if (Uhr.GetDateTime(UhrZp).Hour > 20) { // Wenn es schon nach 20Uhr ist, wird keine Wärme mehr kommen. Deswegen verhindern wir das Try
+      KollektorGesperrtBisZp = UhrZp / 86400 * 86400 + 111600;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 7h = morgen um 7 ist Kollektor wieder freigegeben
       Status = KollektorStatus_Sperrzeit;
 }    else {
       millis1 = millis();

@@ -19,10 +19,10 @@ void vitoDoEvents () {
       static uint8_t VitoAdr = 0;
       if (VitoAdr > 8) {
         static uint16_t LastRead;
-        uint16_t mill = millis();
-        if (mill-LastRead > 10000) { // Nur alle ? Sek die Abfrage gegen die Heizung starten
+        tmpUint16_1 = millis();
+        if ( tmpUint16_1 - LastRead > 10000) { // Nur alle ? Sek die Abfrage gegen die Heizung starten
           VitoAdr = 0;               // Es wird ja vor der Auswertung dazugezählt
-          LastRead=mill;
+          LastRead=tmpUint16_1;
         }
       } 
       else

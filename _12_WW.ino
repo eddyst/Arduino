@@ -51,7 +51,7 @@ void WWDoEvents (){
 }
 
 void WWAnforderungBerechnen () {
-  int16_t ValueX10new1 = Values[_WWAnforderung].ValueX10;
+  ValueX10new1 = Values[_WWAnforderung].ValueX10;
   static uint32_t AnforderungSeit;
   if ( ValueX10new1 <= AnforderungFALSE_Zeitlimit) { // Es ist noch keine Anforderung aktiv -> prüfen was gegen einschalten spricht
     if      ( Values[_WWSpeicherTemp1].ValueX10 == ValueUnknown                                      ) ValueX10new1 = AnforderungFALSE_Temp1_UNKNOWN;
@@ -105,7 +105,7 @@ void WWPumpe () {
         ValueX10new1 = WWPumpe_KeinSolarBetrieb;
       else if( Values[_WWSpeicherTemp1].ValueX10 >  WWtMax - 20) 
         ValueX10new1 = WWPumpe_WWSpeicherTemp1GroesserWWtMaxMinus2C;      //is schon 2 C vor Temp.begrenzer und lohnt ni mehr
-      else if( Values[_WWSpeicherTemp1].ValueX10 >  Max( Values[ _SpeicherA1].ValueX10, Values[ _SpeicherA2].ValueX10) - 20) 
+      else if( Values[_WWSpeicherTemp1].ValueX10 >  MAX( Values[ _SpeicherA1].ValueX10, Values[ _SpeicherA2].ValueX10) - 20) 
         ValueX10new1 = WWPumpe_WWSpeicherTemp1GroesserSpeicherA1und2Minus2C;      
       else if( Values[_WWSpeicherTemp1].ValueX10 == ValueUnknown) 
         ValueX10new1 = WWPumpe_WWSpeicherTemp1Unknown;                    //Sonst gibts nix zu regeln
@@ -119,7 +119,7 @@ void WWPumpe () {
         ValueX10new1 = WWPumpe_KeinSolarBetrieb;
       else if ( Values[ _WWSpeicherTemp1].ValueX10 > WWtMax)       //Ausschaltkriterium im Sommer wenn genug Solar vorhanden
         ValueX10new1 = WWPumpe_AusWWSpeicherTemp1GroesserWWtMaxMinus2C;   
-      else if( Values[ _WWSpeicherTemp1].ValueX10 > Max( Values[ _SpeicherA1].ValueX10, Values[ _SpeicherA2].ValueX10) - 10) //Ausschaltkriterium ohne Solareintrag - weiter pumpen würde das WW abkühlen
+      else if( Values[ _WWSpeicherTemp1].ValueX10 > MAX( Values[ _SpeicherA1].ValueX10, Values[ _SpeicherA2].ValueX10) - 10) //Ausschaltkriterium ohne Solareintrag - weiter pumpen würde das WW abkühlen
         ValueX10new1 = WWPumpe_AusWWSpeicherTemp1GroesserSpeicherA1und2Minus2C;   
       if ( ValueX10new1 < WWPumpe_Aus) {
         digitalWrite(WWPumpeAnPin, LOW);
@@ -132,14 +132,6 @@ void WWPumpe () {
     Debug.println   ( Values[_WWPumpeProzent].ValueX10);
   }
 }
-
-int16_t Max( int16_t Value1, int16_t Value2) {
-  if ( Value1 > Value2) 
-    return Value1;
-  else
-    return Value2;
-}
-
 
 
 

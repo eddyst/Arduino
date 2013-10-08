@@ -2,15 +2,16 @@
 
 #include <Bounce.h>
 #include <Clock.h>
-Clock g_Clock;
+Clock Uhr;
+uint32_t UhrZp;
 
 void AllgInit() {
   pinMode     (NotbetriebPin              , INPUT_PULLUP); //Kein Schalter = Schalter offen = Pin HIGH = Notbetrieb
-  g_Clock.SetTimezoneOffset(2,0); // Setup the clock. In Germany we are 1 hours ahead of GMT  (2 zur Sommerzeit)
+  Uhr.SetTimezoneOffset(2,0); // Setup the clock. In Germany we are 1 hours ahead of GMT  (2 zur Sommerzeit)
 }
 
 void   AllgDoEvents() {
-  g_Clock.Maintain();
+  Uhr.Maintain();
   pruefeNotbetriebPin();
 }
 
@@ -61,9 +62,6 @@ boolean parseHexChar(const char& input, uint8_t& output) {
   output = 0;
   return false;
 }
-
-
-
 
 
 

@@ -64,6 +64,7 @@ void HKAnforderung() {
     Debug.println ( Values[_HKAnforderung].ValueX10);
   }
 }
+/*
 void HKVentil() {
   if ( Values[_HKVorlaufTempSoll].ValueX10 != ValueUnknown
     ||  Values[_HKVorlaufTemp1].ValueX10 != ValueUnknown
@@ -113,7 +114,7 @@ void HKVentil() {
     }
   }
 }
-
+*/
 
 
 

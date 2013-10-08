@@ -114,6 +114,7 @@ uint8_t  owArray[] = { _HKRuecklaufTemp2, _HKVorlaufTemp1, _HKVorlaufTemp2,
                        _WWPumpeProzent, _WWRuecklaufTemp, _WWSpeicherTemp1, _WWSpeicherTemp2, _WWVorlaufTemp };
 
 #define ValueUnknown -10000
+
 data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
                  { 0, ValueUnknown, FHEM_HKRuecklaufTemp2           },  
                  { 0, ValueUnknown, FHEM_HKVorlaufTemp1             }, 
@@ -200,7 +201,10 @@ data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
 #define  WWSpreizung              30
 
 char buffer[30]; //Allgemeiner Buffer 
+
 int16_t ValueX10new1;
+uint8_t tmpUint8_1, tmpUint8_2, tmpUint8_3;
+uint16_t tmpUint16_1;
 
 #define EEPROM_Offset_Stagnation   0
 #define EEPROM_Offset_owArray    100

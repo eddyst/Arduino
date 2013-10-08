@@ -11,8 +11,8 @@ void VitoDebugMsg(uint8_t LogLevel, char* Msg){
   }
 }
 
+int16_t ValueInt16;
 void VitoOnValueRead(uint8_t AdrBit1, uint8_t AdrBit2, uint8_t Length, uint8_t* Data){
-  int16_t ValueInt16;
   switch ((AdrBit1 << 8) + AdrBit2) {
     case  (0x55 << 8) + 0x5A: // ThermeKesselTempSoll (/ 10) (2 Byte)
     if (vitoLogLevel > 1) {

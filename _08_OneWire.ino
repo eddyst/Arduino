@@ -1,7 +1,7 @@
 #define OneWireBus1Pin 48
 #define OneWireBus2Pin 46
-#define UpdateEachSensor
-
+//#define UpdateEachSensor
+#define parasite 1
 #include <OneWire.h>
 #include <EEPROM.h>
 
@@ -11,7 +11,7 @@ OneWire  owBus2(OneWireBus2Pin);
 
 void doEventsOWMaster() {
 #define owStateBUS_SELECT             0
-#define owStateDELAY      1
+#define owStateDELAY                  1
 #define owStateUPDATE                 2
 #define owStateWAIT_AFTER_UPDATE      3
 #define owStateRESETSEARCH            4
@@ -34,10 +34,14 @@ void doEventsOWMaster() {
       owStateChange(&owState, owStateDELAY);
       return;
     }
+#ifdef UpdateEachSensor
     owStateChange(&owState, owStateRESETSEARCH);
+#else
+    owStateChange(&owState, owStateUPDATE);
+#endif    
     break;
   case owStateDELAY:
-    if (millis() - waitSince >= 0) {//20000
+    if (millis() - waitSince >= 10000) {//20000
 #ifdef UpdateEachSensor
       owStateChange(&owState, owStateRESETSEARCH);
 #else
@@ -49,8 +53,10 @@ void doEventsOWMaster() {
     owBus->reset();
 #ifdef UpdateEachSensor
     owBus->select(owAddr);
+#else
+    owBus->write(0xCC);  
 #endif
-    owBus->write(0x44,1);         // start conversion, with parasite power on at the end
+    owBus->write(0x44, parasite);         // start conversion, with parasite power on at the end
 
     waitSince = millis();
     owStateChange(&owState, owStateWAIT_AFTER_UPDATE);
@@ -76,7 +82,7 @@ void doEventsOWMaster() {
     break;
   case owStateSEARCH:
     if ( !owBus->search( owAddr)) {
-      owStateChange(&owState, owStateRESETSEARCH);
+      owStateChange(&owState, owStateBUS_SELECT);
       waitSince = millis();
     } 
     else {
@@ -184,6 +190,7 @@ void doEventsOWMaster() {
       Debug.print( F(" Temperature = "));
       Debug.print(celsius);
       Debug.print( F(" C "));
+      if (owLogLevel < 3) Debug.println();
     }
     owStateChange(&owState, owStateSEARCH);
     if (celsius < -30 || celsius > 125) {
@@ -201,13 +208,13 @@ void doEventsOWMaster() {
     else {
       for (uint8_t i = 0; i < sizeof(owArray); i++) {
         boolean OK = true;
-        if (owLogLevel > 2) {
+        if (owLogLevel > 3) {
           Debug.print( F(" i = "));
           Debug.print(i, DEC);  
         }      
         for (uint8_t b = 0; b < 8; b++) {
           uint8_t ee = EEPROM.read( EEPROM_Offset_owArray + i * 8 + b);
-          if (owLogLevel > 2){ 
+          if (owLogLevel > 3){ 
             Debug.print( F("   b  = "));
             Debug.print(b,DEC);
             Debug.print( F("   ee( "));
@@ -216,7 +223,7 @@ void doEventsOWMaster() {
             Debug.print(ee,DEC);
           }
           if (owAddr[b] != ee) {
-            if (owLogLevel > 2) Debug.println( F(" --- NOT EQUAL --- "));
+            if (owLogLevel > 3) Debug.println( F(" --- NOT EQUAL --- "));
             OK = false;
             break;
           }

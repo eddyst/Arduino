@@ -1,7 +1,7 @@
 byte mac[] = { 
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE };   // MAC address.
 #define owAddrSyncIntervall 3600000
-#define SollSyncIntervall    600000
+#define SollSyncIntervall     60000
 
 #include <SPI.h>
 #include <Ethernet.h>

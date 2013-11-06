@@ -21,8 +21,8 @@ prog_char FHEM_HKVorlaufTemp2             [] PROGMEM =  "HKVorlaufTemp2";
 prog_char FHEM_HKVorlaufTempSoll          [] PROGMEM =  "HKVorlaufTempSoll";
 #define       _HKVorlaufValue              5
 prog_char FHEM_HKVorlaufValue             [] PROGMEM =  "HKVorlaufValue";
-#define       _HKVorlaufSollValue              44
-prog_char FHEM_HKVorlaufSollValue             [] PROGMEM =  "HKVorlaufSollValue";
+#define       _UNUSED              44
+prog_char FHEM_UNUSED             [] PROGMEM =  "UNUSED";
 
 #define       _KollektorAusdehnung         6
 prog_char FHEM_KollektorAusdehnung        [] PROGMEM =  "KollektorAusdehnung";
@@ -105,6 +105,8 @@ prog_char FHEM_WWSpeicherTempSoll         [] PROGMEM =  "WWSpeicherTempSoll";
 prog_char FHEM_WWVentil                   [] PROGMEM =  "WWVentil";
 #define       _WWVorlaufTemp              43
 prog_char FHEM_WWVorlaufTemp              [] PROGMEM =  "WWVorlaufTemp";
+#define       _WWZirkulation              45
+prog_char FHEM_WWZirkulation              [] PROGMEM =  "WWZirkulation";
 
 uint8_t  owArray[] = { _HKRuecklaufTemp2, _HKVorlaufTemp1, _HKVorlaufTemp2,
                        _KollektorAusdehnung,  _KollektorWTRuecklauf,_KollektorWTVorlauf,
@@ -113,11 +115,11 @@ uint8_t  owArray[] = { _HKRuecklaufTemp2, _HKVorlaufTemp1, _HKVorlaufTemp2,
                        _ThermeRuecklaufTempIst, _ThermeVorlaufTempIst,
                        _WWPumpeProzent, _WWRuecklaufTemp, _WWSpeicherTemp1, _WWSpeicherTemp2, _WWVorlaufTemp };
 
-#define ValueUnknown -10000
-
-data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
-                 { 0, ValueUnknown, FHEM_HKRuecklaufTemp2           },  
-                 { 0, ValueUnknown, FHEM_HKVorlaufTemp1             }, 
+  #define ValueUnknown -10000
+  
+  data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
+                   { 0, ValueUnknown, FHEM_HKRuecklaufTemp2           },  
+                   { 0, ValueUnknown, FHEM_HKVorlaufTemp1             }, 
                  { 0, ValueUnknown, FHEM_HKVorlaufTemp2             }, // 5
                  { 0, ValueUnknown, FHEM_HKVorlaufTempSoll          }, // 5
                  { 0, ValueUnknown, FHEM_HKVorlaufValue             }, 
@@ -166,7 +168,8 @@ data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
                  { 0, ValueUnknown, FHEM_WWVentil                   },  
                  { 0, ValueUnknown, FHEM_WWVorlaufTemp              },
 
-                 { 0, ValueUnknown, FHEM_HKVorlaufSollValue         } 
+                 { 0, ValueUnknown, FHEM_UNUSED                     }, 
+                 { 0, ValueUnknown, FHEM_WWZirkulation              }
                 };
 
 #define ThermeBetriebsartAbschalten       0
@@ -188,9 +191,19 @@ data Values[] = {{ 0, ValueUnknown, FHEM_HKAnforderung              }, // 0
 #define AnforderungFALSE_AusTemp2            92
 #define AnforderungFALSE_AusTemp3            93
 #define AnforderungTRUE                     100
-#define AnforderungTRUE_Temp2               110
-#define AnforderungTRUE_Temp3               120
+#define AnforderungTRUE_Temp1               110
+#define AnforderungTRUE_Temp2               120
+#define AnforderungTRUE_Temp3               130
 
+#define KollektorStatus_UNKNOWN_Uhrzeit              -40
+#define KollektorStatus_UNKNOWN_KollektorWTVorlauf   -30
+#define KollektorStatus_UNKNOWN_SpeicherA5           -20
+#define KollektorStatus_Stagnation                   -10
+#define KollektorStatus_Sperrzeit                     -5
+#define KollektorStatus_AUS                            0
+#define KollektorStatus_TRY                           10
+#define KollektorStatus_AN                            20
+#define KollektorStatus_AUSschalten                   30
 
 #define  HKtMax                   600
 #define  HKHysterese              20
@@ -205,11 +218,12 @@ char buffer[30]; //Allgemeiner Buffer
 int16_t ValueX10new1;
 uint8_t tmpUint8_1, tmpUint8_2, tmpUint8_3;
 uint16_t tmpUint16_1;
+int32_t tmpInt32_1;
 
 #define EEPROM_Offset_Stagnation   0
 #define EEPROM_Offset_owArray    100
 
-#define MIN(a,b)			((a<b)?(a):(b))
-#define MAX(a,b)			((a>b)?(a):(b))
-#define ABS(x)				((x>0)?(x):(-x))
+//#define MIN(a,b)			((a<b)?(a):(b))
+//#define MAX(a,b)			((a>b)?(a):(b))
+//#define ABS(x)				((x>0)?(x):(-x))
 

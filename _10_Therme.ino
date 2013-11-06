@@ -66,10 +66,11 @@ void ThermeSolarbetriebEndet () {
 }
 #define ThermeUmschaltventilWW 30
 #define ThermeUmschaltventilHK 10
+
+Bounce thermeVentilBouncer = Bounce(ThermeVentilPin, 500, true); 
 void   ThermeDoEvents() {
-  static Bounce bouncer = Bounce(ThermeVentilPin, 500, true); 
-  if (bouncer.update()) {
-    if (bouncer.read()) 
+  if (thermeVentilBouncer.update()) {
+    if (thermeVentilBouncer.read()) 
       ValueX10new1 = ThermeUmschaltventilWW; 
     else 
       ValueX10new1 = ThermeUmschaltventilHK;
@@ -78,7 +79,7 @@ void   ThermeDoEvents() {
       Debug.print   ( Values[ _ThermeUmschaltventilTaster].ValueX10);
       Debug.println ( F( "Zugewiesen"));
     }
-    if (Values[_SteuerungStatus].ValueX10 > SteuerungStatusNotfallBetrieb && bouncer.fallingEdge()) {  // Wir sind nicht mehr im richtigen Modus
+    if (Values[_SteuerungStatus].ValueX10 > SteuerungStatusNotfallBetrieb && thermeVentilBouncer.fallingEdge()) {  // Wir sind nicht mehr im richtigen Modus
       digitalWrite( ThermeVentilSperrenPin, LOW);                                                      // das Ventil freigeben
       ThermeSetSteuerungStatus( SteuerungStatusSolarBetriebWarteAufVentil);                            // und Status  zurücksetzen
       if (thermeLogLevel > 0) Debug.println ( F("Therme: SteuerungStatusSolarBetriebWarteAufVentil"));
@@ -194,12 +195,12 @@ void BerechneThermeVorlaufValue() {
       tmpUint16_1 = Values[ _HKVorlaufTempSoll].ValueX10 + HKHysterese + HKSpreizung * 2;
     }
     if (Values[_WWAnforderung].ValueX10 >= AnforderungTRUE) {
-      tmpUint16_1 = MAX( tmpUint16_1, Values[ _WWSpeicherTempSoll].ValueX10 + WWHysterese + WWSpreizung + MAX( 0, Values[ _WWSpeicherTempSoll].ValueX10 - Values[ _WWSpeicherTemp1].ValueX10) * 2);
+      tmpUint16_1 = max( tmpUint16_1, Values[ _WWSpeicherTempSoll].ValueX10 + WWHysterese + WWSpreizung + max( 0, Values[ _WWSpeicherTempSoll].ValueX10 - Values[ _WWSpeicherTemp1].ValueX10) * 2);
       //                 Wert von HK übernehmen falls grüßer
       //                              Temp muß hoch genug sein, also Soll + Hysterese + Spreizung + (Delta T * 2 aber nur wenn größer 0 - damit Heizen wir mehr wenn großer Verbrauch die Temp. stärker drückt)
     }
-
     if ( tmpUint16_1 > 1036 / 7) {
+      tmpUint16_1 = max( tmpUint16_1,  Values[_ThermeKesselTempIst].ValueX10 - 20);
       //ValueX10new1 = ThermeVorlaufTempVorgabe;
       //ValueX10new1 = ThermeVorlaufTempVorgabeValue + (ThermeVorlaufTempVorgabe - Values[_ThermeVorlaufTempIst].ValueX10) * 255 /1000; // ThermeVorlaufTempVorgabeValue berechnen
       ValueX10new1 = (tmpUint16_1 * 7 - 1036) / 3;//bei 1050 unf 65C Soll entstehen 63

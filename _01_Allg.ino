@@ -8,6 +8,10 @@ uint32_t UhrZp;
 void AllgInit() {
   pinMode     (NotbetriebPin              , INPUT_PULLUP); //Kein Schalter = Schalter offen = Pin HIGH = Notbetrieb
   Uhr.SetTimezoneOffset(2,0); // Setup the clock. In Germany we are 1 hours ahead of GMT  (2 zur Sommerzeit)
+  for (tmpUint16_1 = 0; tmpUint16_1 < sizeof(Values)/sizeof(data); tmpUint16_1++) {
+    Values[tmpUint16_1].Changed  = 0;
+    Values[tmpUint16_1].ValueX10 = ValueUnknown;
+  }
 }
 
 void   AllgDoEvents() {

@@ -63,7 +63,7 @@ void ethDoEvents() {
               digit;
               tmpUint8_1 = 7;
               Value = 0;
-              while(tmpUint8_1 < ethInBufferCount && tmpUint8_1 < 9) {
+              while(tmpUint8_1 < ethInBufferCount && tmpUint8_1 < 10) {
                 if (ethLogLevel > 2) {
                   Debug.print  ( F("  ethInBuffer["));
                   Debug.print  ( tmpUint8_1);
@@ -83,122 +83,126 @@ void ethDoEvents() {
                 tmpUint8_1++;
               }
               if(ethInBuffer[4] == 'W' && ethInBuffer[5] == 'W') {
-                if( Value * 10 > WWtMax) {
+                if( Value > WWtMax) {
                   Value = WWtMax;
                   if (wwLogLevel > 0) {
                     Debug.print   ( F("WW: WWSpeicherTempSoll ueberschreitet max "));
                     Debug.println ( WWtMax);
                   }
                 } 
-                else {
-                  Value *= 10;
-                }
                 if( setValue( _WWSpeicherTempSoll, Value) && wwLogLevel > 1) {
                   Debug.print   ( F("WW: WWSpeicherTempSoll Zugewiesen: "));
                   Debug.println ( Values[_WWSpeicherTempSoll].ValueX10);
                 }
               }
               else if (ethInBuffer[4] == 'H' && ethInBuffer[5] == 'K') {
-                if ( Value * 10 > HKtMax - HKHysterese) {
+                if ( Value > HKtMax - HKHysterese) {
                   Value = HKtMax - HKHysterese;
                   if (hkLogLevel > 0) {
                     Debug.print   ( F("HK: HKVorlaufTempSoll ueberschreitet max "));
                     Debug.println ( Value);
                   }
                 }
-                if ( setValue( _HKVorlaufTempSoll, Value * 10) && hkLogLevel > 1) {
+                if ( setValue( _HKVorlaufTempSoll, Value) && hkLogLevel > 1) {
                   Debug.print   ( F("HK: HKVorlaufTempSoll Zugewiesen: "));
                   Debug.println   ( Values[_HKVorlaufTempSoll].ValueX10);
                 }
               }
             } 
             else if (ethInBufferCount > 6 
-              && ethInBuffer[0] == 'O'
-              && ethInBuffer[1] == 'W'
-              && ethInBuffer[2] == 'A' 
-              && ethInBuffer[5] == '=' ) {
+              && ethInBuffer[0] == 'd'
+              && ethInBuffer[1] == 'p'
+              && ethInBuffer[4] == 'i' 
+              && ethInBuffer[5] == 'd' 
+              && ethInBuffer[6] == '=' ) {
               if (ethLogLevel > 1) Debug.println( F( " = OneWireAddresse"));
-              tmpUint8_1 = 0;
-              if (!parseHexChar(ethInBuffer[3], digit)) {
+              tmpUint16_1 = 0;
+              if (!parseHexChar(ethInBuffer[2], digit)) {
                 if ( ethLogLevel > 0) Debug.println( F( "\neth: owAddr: 1. Stelle der Addresse nicht nummerisch!")); 
               }
               else {
-                tmpUint8_1 = digit * 16;
-                if (!parseHexChar(ethInBuffer[4], digit)) {
+                tmpUint16_1 = digit * 100;
+                if (!parseHexChar(ethInBuffer[3], digit)) {
                   if (ethLogLevel > 0) Debug.println( F("\neth: owAddr: 2. Stelle der Addresse nicht nummerisch!")); 
                 }
                 else {
-                  tmpUint8_1+= digit;
-                }
-                tmpUint8_2 = 6;
-                HexCharIndex = 0;
-                AddrByteIndex = 0;
-                boolean AfterFirstChar = false;
-                while(tmpUint8_2 < ethInBufferCount && AddrByteIndex < 8) {
-                  if (ethLogLevel > 2) {
-                    Debug.print( F ( "  ethInBuffer["));
-                    Debug.print(tmpUint8_2);
-                    Debug.print( F ( "] = ")); 
-                    Debug.println(ethInBuffer[tmpUint8_2]);
+                  tmpUint16_1 += digit * 10;
+                  if (!parseHexChar(ethInBuffer[4], digit)) {
+                    if (ethLogLevel > 0) Debug.println( F("\neth: owAddr: 3. Stelle der Addresse nicht nummerisch!")); 
                   }
-                  if (parseHexChar(ethInBuffer[tmpUint8_2], digit)) {
-                    AfterFirstChar=true;
-                    if(HexCharIndex > 1) {
-                      HexCharIndex = 0; 
-                      AddrByteIndex++;
-                    }
-                    if (ethLogLevel > 2) {
-                      Debug.print( F ( "  digit = ")); 
-                      Debug.println(digit, DEC);
-                    }
-                    switch (HexCharIndex++){
-                    case 0:  
-                      Addr[AddrByteIndex] = digit;                 
-                      break;
-                    case 1:  
-                      Addr[AddrByteIndex] *= 16;
-                      Addr[AddrByteIndex] += digit;                 
-                      break;
-                    }
-                    if (ethLogLevel > 2) {
-                      Debug.print( F ( "  Addr["));
-                      Debug.print(AddrByteIndex);
-                      Debug.print( F ( "] = ")); 
-                      Debug.print(Addr[AddrByteIndex],DEC);
-                      Debug.print( F ( " = ")); 
-                      Debug.println(Addr[AddrByteIndex],HEX);
-                    }
-                  } 
                   else {
-                    if (ethLogLevel > 2) Debug.println( F( "  parseHexChar = false"));
-                    if (AfterFirstChar) {
-                      HexCharIndex = 0; 
-                      AddrByteIndex++;
-                    }
-                  }
-                  tmpUint8_2++;
-                } 
-                if (ethLogLevel > 2) Debug.println(AddrByteIndex);
-                if( AddrByteIndex != 7) {
-                  if (ethLogLevel > 0) Debug.println( F( "\neth: owAddr: Addresslänge stimmt nicht!")); 
-                }
-                else {
-                  for (AddrByteIndex=0; AddrByteIndex < 8; AddrByteIndex++) {
-                    if (EEPROM.read( EEPROM_Offset_owArray + tmpUint8_1 * 8 + AddrByteIndex) != Addr[AddrByteIndex]){
-                      if (ethLogLevel > 0) {
-                        Debug.print  ( F( "\neth:     Schreibe EEPROM(")); 
-                        Debug.print  ( EEPROM_Offset_owArray + tmpUint8_1 * 8 + AddrByteIndex); 
-                        Debug.print  ( F( ", ")); 
-                        Debug.print  ( Addr[AddrByteIndex], HEX); 
-                        Debug.println(F(")")); 
+                    tmpUint16_1 += digit;
+                    tmpUint8_2 = 7; //einlesen beginnt an 7.Stelle
+                    HexCharIndex = 0;
+                    AddrByteIndex = 0;
+                    boolean AfterFirstChar = false;
+                    while(tmpUint8_2 < ethInBufferCount && AddrByteIndex < 8) {
+                      if (ethLogLevel > 2) {
+                        Debug.print( F ( "  ethInBuffer["));
+                        Debug.print(tmpUint8_2);
+                        Debug.print( F ( "] = ")); 
+                        Debug.println(ethInBuffer[tmpUint8_2]);
                       }
-                      EEPROM.write( EEPROM_Offset_owArray + tmpUint8_1 * 8 + AddrByteIndex, Addr[AddrByteIndex]);
+                      if (parseHexChar(ethInBuffer[tmpUint8_2], digit)) {
+                        AfterFirstChar=true;
+                        if(HexCharIndex > 1) {
+                          HexCharIndex = 0; 
+                          AddrByteIndex++;
+                        }
+                        if (ethLogLevel > 2) {
+                          Debug.print( F ( "  digit = ")); 
+                          Debug.println(digit, DEC);
+                        }
+                        switch (HexCharIndex++){
+                        case 0:  
+                          Addr[AddrByteIndex] = digit;                 
+                          break;
+                        case 1:  
+                          Addr[AddrByteIndex] *= 16;
+                          Addr[AddrByteIndex] += digit;                 
+                          break;
+                        }
+                        if (ethLogLevel > 2) {
+                          Debug.print( F ( "  Addr["));
+                          Debug.print(AddrByteIndex);
+                          Debug.print( F ( "] = ")); 
+                          Debug.print(Addr[AddrByteIndex],DEC);
+                          Debug.print( F ( " = ")); 
+                          Debug.println(Addr[AddrByteIndex],HEX);
+                        }
+                      } 
+                      else {
+                        if (ethLogLevel > 2) Debug.println( F( "  parseHexChar = false"));
+                        if (AfterFirstChar) {
+                          HexCharIndex = 0; 
+                          AddrByteIndex++;
+                        }
+                      }
+                      tmpUint8_2++;
+                    } 
+                    if (ethLogLevel > 2) Debug.println(AddrByteIndex);
+                    if( AddrByteIndex != 7) {
+                      if (ethLogLevel > 0) Debug.println( F( "\neth: owAddr: Addresslänge stimmt nicht!")); 
                     }
-                  }
-                  if (ethLogLevel > 1) Debug.println( F("\neth: owAddr: OK"));
-                } 
+                    else {
+                      for (AddrByteIndex=0; AddrByteIndex < 8; AddrByteIndex++) {
+                        if (EEPROM.read( EEPROM_Offset_owArray + tmpUint16_1 * 8 + AddrByteIndex) != Addr[AddrByteIndex]){
+                          if (ethLogLevel > 0) {
+                            Debug.print  ( F( "\neth:     Schreibe EEPROM(")); 
+                            Debug.print  ( EEPROM_Offset_owArray + tmpUint16_1 * 8 + AddrByteIndex); 
+                            Debug.print  ( F( ", ")); 
+                            Debug.print  ( Addr[AddrByteIndex], HEX); 
+                            Debug.println(F(")")); 
+                          }
+                          EEPROM.write( EEPROM_Offset_owArray + tmpUint16_1 * 8 + AddrByteIndex, Addr[AddrByteIndex]);
+                        }
+                      }
+                      if (ethLogLevel > 1) Debug.println( F("\neth: owAddr: OK"));
+                    } 
+                  } // alle 3 Stellen nummerisch
+                }
               }
-            }
+            }       //"dp###id"= erkannt
           }
         }
         else { //Die Zeichenfolge ist noch nicht beendet
@@ -263,23 +267,26 @@ void ethDoEvents() {
           Value = 0;
         } 
         else{
+          //---ALT------
           //Bsp: sending: {"<OWA1=".AttrVal("HKRuecklauf","ID","0 0 0 0 0 0 0 0").">" }
           //     returns: <OWA1=00 00 00 00 00 00 00 00> 
-          strcpy_P(buffer, Values[owArray[Value]].Name);
-          if (ethLogLevel > 1) Debug.print( F( "eth: OUT: { \"<OWA"));
-          client.print( F( "{ \"<OWA"));
-          if (Value < 16) {
-            if (ethLogLevel > 1) Debug.print( F( "0"));
-            client.print( F( "0"));
+          //---NEU------
+          //Bsp: sending: dp001id
+          //     returns: <dp001id=00 00 00 00 00 00 00 00> 
+          if (ethLogLevel > 1) Debug.print( F( "eth: OUT: dp"));
+          client.print( F( "dp"));
+          if (owArray[Value] < 100) {
+            if (ethLogLevel > 1) Debug.print( "0");  
+            client.print( "0"); 
           }
-          if (ethLogLevel > 1) Debug.print( Value, HEX);
-          client.print( Value, HEX);
-          if (ethLogLevel > 1) Debug.print( F( "=\".AttrVal(\""));
-          client.print( F( "=\".AttrVal(\""));
-          if (ethLogLevel > 1) Debug.print(buffer);
-          client.print(buffer);
-          if (ethLogLevel > 1) Debug.println( F( "\",\"ID\",\"0 0 0 0 0 0 0 0\").\">\" }"));
-          client.println( F( "\",\"ID\",\"0 0 0 0 0 0 0 0\").\">\" }"));
+          if (owArray[Value] < 100) {
+            if (ethLogLevel > 1) Debug.print( "0");  
+            client.print( "0"); 
+          }
+          if (ethLogLevel > 1) Debug.print( owArray[Value]);  
+          client.print( owArray[Value]); 
+          if (ethLogLevel > 1) Debug.println( F( "id"));
+          client.println( F( "id"));
           Value ++;
         }
       } 
@@ -294,13 +301,14 @@ void ethDoEvents() {
           Value = 0;
         } 
         else {//Sende: { "<SollHK=".Value("HKSollTempVorgabe").">" }
+              //besser:{ sprintf( "<SollHK=%.0f>", Value("WWZirkulation") * 10)}
           if (Value == 0) {
-            if (ethLogLevel > 1) Debug.println( F( "eth: OUT: { \"<SollHK=\".Value(\"HKSollTempVorgabe\").\">\" }"));
-            client.println( F( "{ \"<SollHK=\".Value(\"HKSollTempVorgabe\").\">\" }"));
+            if (ethLogLevel > 1) Debug.println( F( "eth: OUT: { sprintf( \"<SollHK=%.0f>\", Value(\"HKSollTempVorgabe\") * 10)}"));
+            client.println( F( "{ sprintf( \"<SollHK=%.0f>\", Value(\"HKSollTempVorgabe\") * 10)}"));
           } 
           else if ( Value == 1) {
-            if (ethLogLevel > 1) Debug.println( F( "eth: OUT: { \"<SollWW=\".Value(\"WWSollTempVorgabe\").\">\" }"));
-            client.println( F( "{ \"<SollWW=\".Value(\"WWSollTempVorgabe\").\">\" }"));
+            if (ethLogLevel > 1) Debug.println( F( "eth: OUT: { sprintf( \"<SollWW=%.0f>\", Value(\"WWSollTempVorgabe\") * 10)}"));
+            client.println( F( "{ sprintf( \"<SollWW=%.0f>\", Value(\"WWSollTempVorgabe\") * 10)}"));
           }
           Value ++;
         }
@@ -315,11 +323,18 @@ void ethDoEvents() {
       else{
         if ( Values[Value].Changed == 1 && Values[Value].ValueX10 != ValueUnknown) {
           Values[Value].Changed = 0;
-          strcpy_P(buffer, Values[Value].Name);
-          if (ethLogLevel > 1) Debug.print( F("eth: OUT: set "));  
-          client.print( F( "set ")); 
-          if (ethLogLevel > 1) Debug.print( buffer);  
-          client.print( buffer); 
+          if (ethLogLevel > 1) Debug.print( F("eth: OUT: dp"));  
+          client.print( F( "dp"));
+          if (Value < 100) {
+            if (ethLogLevel > 1) Debug.print( "0");  
+            client.print( "0"); 
+          }
+          if (Value < 10) {
+            if (ethLogLevel > 1) Debug.print( "0");  
+            client.print( "0"); 
+          }
+          if (ethLogLevel > 1) Debug.print( Value);  
+          client.print( Value); 
           if (ethLogLevel > 1) Debug.print( F(" "));  
           client.print( F( " ")); 
           if (ethLogLevel > 1) Debug.println( ( float)Values[Value].ValueX10 / 10, 1);
@@ -334,6 +349,8 @@ void ethDoEvents() {
   }
   lastConnected = client.connected();    // store the state of the connection for next time through the loop
 }
+
+
 
 
 

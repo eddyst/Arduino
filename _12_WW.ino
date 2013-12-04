@@ -37,20 +37,29 @@ uint32_t zirkuTimer;
 void WWDoEvents (){
   WWAnforderungBerechnen ();
   WWPumpe ();
-
   ValueX10new1 = Values[_WWZirkulation].ValueX10;
   if ( ValueX10new1 == 10) {
     if ( millis() - zirkuTimer > 120000) {
+      if ( wwLogLevel > 1) {
+        Debug.println (F("WW: ZA zirkuTimerAbgelaufen "));
+      }
       digitalWrite( WWZirkulationPin, LOW);
       ValueX10new1 = 0;
     }
   }
   else {
     if ( wWZirkulationBouncer.update()) {
+      if ( wwLogLevel > 1) {
+        Debug.println (F("WW: ZA update "));
+      }
       if ( wWZirkulationBouncer.fallingEdge()) {
-       digitalWrite( WWZirkulationPin, HIGH);
-       ValueX10new1 = 10;
-       zirkuTimer = millis();
+        if ( wwLogLevel > 1) {
+          Debug.println (F("WW: ZA falling "));
+        }
+        digitalWrite( WWZirkulationPin, HIGH);
+        ValueX10new1 = 10;
+        zirkuTimer = millis();
+        Debug.println (zirkuTimer);
       }  
     }
   }
@@ -163,6 +172,8 @@ void WWPumpe () {
     Debug.println   ( Values[_WWPumpeProzent].ValueX10);
   }
 }
+
+
 
 
 

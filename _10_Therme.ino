@@ -200,7 +200,7 @@ void BerechneThermeVorlaufValue() {
       //                              Temp muß hoch genug sein, also Soll + Hysterese + Spreizung + (Delta T * 2 aber nur wenn größer 0 - damit Heizen wir mehr wenn großer Verbrauch die Temp. stärker drückt)
     }
     if ( tmpUint16_1 > 1036 / 7) {
-      tmpUint16_1 = max( tmpUint16_1,  Values[_ThermeKesselTempIst].ValueX10 - 20);
+      tmpUint16_1 = max( tmpUint16_1,  Values[_ThermeKesselTempIst].ValueX10 - 25);
       //ValueX10new1 = ThermeVorlaufTempVorgabe;
       //ValueX10new1 = ThermeVorlaufTempVorgabeValue + (ThermeVorlaufTempVorgabe - Values[_ThermeVorlaufTempIst].ValueX10) * 255 /1000; // ThermeVorlaufTempVorgabeValue berechnen
       ValueX10new1 = (tmpUint16_1 * 7 - 1036) / 3;//bei 1050 unf 65C Soll entstehen 63

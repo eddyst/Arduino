@@ -227,8 +227,7 @@ void ethDoEvents() {
     if (ethLogLevel > 0) Debug.print( F( "eth: \nEthernet.maintain: "));
     if (ethLogLevel > 0) 
       Debug.println(Ethernet.maintain());   
-    else 
-      Ethernet.maintain();                         // Maybe we will get a new IP so lets do this when no client is connected
+    Ethernet.maintain();                         // Maybe we will get a new IP so lets do this when no client is connected
     static uint8_t connectionErrors = 0;
     if (client.connect( "hm.fritz.box", 7072)) {    // try to get a connection, report back via serial:
       if (ethLogLevel > 0) Debug.println(F("\neth: connected"));

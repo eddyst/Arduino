@@ -50,7 +50,7 @@ void HKAnforderung() {
 
 #define posIntervall 10000  // 10Sek
 uint32_t HKVentilRechnenMillis;
-int16_t vDelta, vDeltaAlt;
+int16_t vDelta = 0, vDeltaAlt = 0;
 void HKVentil() {
   if ( Values[_HKVorlaufTempSoll].ValueX10 == ValueUnknown
     ||  Values[_HKVorlaufTemp1].ValueX10   == ValueUnknown
@@ -62,13 +62,15 @@ void HKVentil() {
       HKVentilRechnenMillis = millis();
       
       ValueX10new1 = Values[_HKVorlaufValue].ValueX10;
-      vDelta = vDeltaAlt + (Values[_HKVorlaufTemp2].ValueX10 - Values[_HKVorlaufTempSoll].ValueX10)/10;
-      if ( vDelta > 300) 
-        vDelta = 300;
-      else if ( vDelta < -300)
-        vDelta = -300;
-      tmpInt32_2 = Values[_HKVorlaufTempSoll].ValueX10 - vDelta;
-      vDeltaAlt = vDelta;
+      vDelta = vDeltaAlt + (Values[_HKVorlaufTemp2].ValueX10 - Values[_HKVorlaufTempSoll].ValueX10);
+#define vDeltaFaktor 20      
+      tmpInt32_2 = Values[_HKVorlaufTempSoll].ValueX10 - vDelta / vDeltaFaktor;
+#define vDeltaPlusMinusX10 30
+      if ( vDelta > vDeltaPlusMinusX10 * vDeltaFaktor) 
+        vDelta = vDeltaPlusMinusX10 * vDeltaFaktor;
+      else if ( vDelta < -vDeltaPlusMinusX10 * vDeltaFaktor)
+        vDelta = -vDeltaPlusMinusX10 * vDeltaFaktor;
+       vDeltaAlt = vDelta;
       if ( Values[_HKVorlaufTemp2].ValueX10 > 600) {  // Zudrehen!!!!
         if (hkLogLevel > 0) Debug.println ("HK: ! >600 = soKALTwiesGEHT");
         ValueX10new1 = 0;

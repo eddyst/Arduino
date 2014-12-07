@@ -19,7 +19,6 @@ void setup() {
   Debug.println( F ( "Setup"));
   AllgInit();
   EthInit();
-  RS485Init();
   VitoInit();
   ThermeInit();
   HKInit();
@@ -34,7 +33,6 @@ void setup() {
 void loop() {
   AllgDoEvents();
   ethDoEvents();
-  RS485DoEvents();
   vitoDoEvents();
   doEventsOWMaster();
   WWDoEvents();

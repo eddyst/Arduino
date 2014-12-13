@@ -237,12 +237,12 @@ void doEventsOWMaster() {
         }
       }  
       if (owLogLevel > 0) {          
-        Debug.print( F("ow: ROM = "));
+        Debug.print( F("ow: ROM ="));
         for(byte i = 0; i < 8; i++) {
           Debug.write(' ');
           if (owLogLevel > 0) Debug.print(owAddr[i], HEX);
         }
-        Debug.println( F("Addresse des Sensor nicht bekannt")); 
+        Debug.println( F(" Addresse des Sensor nicht bekannt")); 
       }
     }
     break;

@@ -54,18 +54,19 @@ void KollektorDoEvents (){
     }
     break;
   case KollektorStatus_AUS: //Anschalten?
-    if (millis() - millis1 > KollektorTryIntervall) {
+    if (Values[_KollektorDach].ValueX10 == unknownValue && millis() - millis1 > KollektorTryIntervall) 
+    || (Values[_KollektorDach].ValueX10 != unknownValue && Values[_KollektorDach].ValueX10 > Values[_SpeicherA5].ValueX10 + 10) {
       digitalWrite(KollektorPumpeAnPin, HIGH);
       millis1 = millis();
       Status = KollektorStatus_TRY;
-    }
+    } 
     break;
   case KollektorStatus_TRY: //Anschalten?
-    if ( Values[_KollektorWTVorlauf].ValueX10 > Values[_SpeicherA5].ValueX10 + 50) {
+    if (Values[_KollektorWTVorlauf].ValueX10 > Values[_SpeicherA5].ValueX10 + 30) {
       millis1 = millis();
       Status = KollektorStatus_AN;
-    } 
-    else if (millis() - millis1 > KollektorTryDauer){
+    } else if (Values[_KollektorDach].ValueX10 == unknownValue && millis() - millis1 > KollektorTryDauer) 
+           || (Values[_KollektorDach].ValueX10 != unknownValue && Values[_KollektorDach].ValueX10 < Values[_SpeicherA5].ValueX10){
       Status = KollektorStatus_AUSschalten;
     }
     break;

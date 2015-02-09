@@ -4,19 +4,11 @@
 #define KollektorTryDauer                 30000 //30 sec
 #define KollektorWartezeitNachAnBevorAus 120000
 
-//#include <Servo.h> //
-//Servo servoKollektor;  // create servo object to control a servo a maximum of eight servo objects can be created 
-
 uint32_t KollektorGesperrtBisZp = 0;
 
 void   KollektorInit() {
   pinMode     (KollektorPumpeAnPin, OUTPUT);   
   digitalWrite(KollektorPumpeAnPin, LOW   );
-
-  //  servoKollektor.attach(PumpeKollektorServoPwmPin);  // attaches the servo on pin 9 to the servo object 
-  //ToDo: Min und Max in Pulsewidht können hier übergeben werden!
-  //  pinMode     (PumpeKollektorServoEnabledPin, OUTPUT);   
-  //  digitalWrite(PumpeKollektorServoEnabledPin, LOW   );
 
   for (tmpUint8_1 = 0; tmpUint8_1 < 4; tmpUint8_1++) {
     KollektorGesperrtBisZp = (KollektorGesperrtBisZp << 8) | EEPROM.read(EEPROM_Offset_Stagnation + tmpUint8_1);

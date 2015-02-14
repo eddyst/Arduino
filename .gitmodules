@@ -1,0 +1,15 @@
+[submodule "Arduino-Prog"]
+	path = Arduino-Prog
+	url = https://github.com/eddyst/Arduino-Prog.git
+[submodule "projects/libraries/UIPEthernet"]
+	path = projects/libraries/UIPEthernet
+	url = https://github.com/ntruchsess/arduino_uip
+[submodule "projects/libraries/Vitodens"]
+	path = projects/libraries/Vitodens
+	url = https://github.com/eddyst/Vitodens.git
+[submodule "projects/SH"]
+	path = projects/SH
+	url = https://github.com/eddyst/SH.git
+[submodule "projects/Dach"]
+	path = projects/Dach
+	url = https://github.com/eddyst/Dach.git

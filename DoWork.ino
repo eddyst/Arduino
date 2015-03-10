@@ -35,9 +35,9 @@ void DoWork() {
           LastValue[pin] = sample[pin];
           bitSet(Changed,pin);
           if (LastValue[pin] < 400) {
-            LastTemp[pin] = (LastValue[pin] * 15 - 1620) / 10;
+            LastTemp[pin] = ((int32_t)LastValue[pin] * 15 - 1620) / 10;
           } else {
-            LastTemp[pin] = (LastValue[pin] * 19 - 3320) / 10;
+            LastTemp[pin] = ((int32_t)LastValue[pin] * 19 - 3320) / 10;
           }
           #if aDCLogLevel > 0
             Debug.print(F(" --> Temp="));  
@@ -55,11 +55,15 @@ void DoWork() {
       Debug.print(F(" Pin: "));
     #endif
     for (int pin=0; pin < pinCount; pin++) {
-//      int v = analogRead( SensorPins[pin]);
-      int v = 400;
+      int v = analogRead( SensorPins[pin]);
+//      int v = 1023;
       sample[pin] += v;  //get 60 samples added together 1024 x 60 max
       #if aDCLogLevel > 3
          Debug.print(v);  
+         Debug.print(F(" sample["));
+         Debug.print(pin);
+         Debug.print(F("]="));
+         Debug.print(sample[pin]);
          Debug.print(F(" "));
       #endif
     }

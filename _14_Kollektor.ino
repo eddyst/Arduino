@@ -1,6 +1,6 @@
 #define KollektorPumpeAnPin         34        
 
-#define KollektorTryIntervall            330000 //9,5 min
+#define KollektorTryIntervall            270000 //4,5 min
 #define KollektorTryDauer                 30000 //30 sec
 #define KollektorWartezeitNachAnBevorAus 120000
 
@@ -20,7 +20,7 @@ void KollektorDoEvents (){
   static uint32_t millis1 = millis();
   static int8_t Status = KollektorStatus_UNKNOWN_Uhrzeit;
   if (Status > KollektorStatus_Stagnation 
-    && Values[_KollektorWTVorlauf].ValueX10 > 900         ) {             //Es wird zu warm 
+    && Values[_KollektorWTVorlauf].ValueX10 > 950         ) {             //Es wird zu warm 
     KollektorGesperrtBisZp = UhrZp / 86400 * 86400 + 111600;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 7h = morgen um 7 ist Kollektor wieder freigegeben
     digitalWrite(KollektorPumpeAnPin, LOW);
     for (tmpUint8_1 = 0; tmpUint8_1 < 4; tmpUint8_1++) {
@@ -71,8 +71,8 @@ void KollektorDoEvents (){
     }
     break;
   case KollektorStatus_AN:
-    if (millis() - millis1 > KollektorWartezeitNachAnBevorAus
-      && Values[_KollektorWTVorlauf].ValueX10 < Values[_SpeicherA5].ValueX10 + 5){// Uppps Wärme ist weg
+    if (   millis() - millis1 > KollektorWartezeitNachAnBevorAus
+        && Values[_KollektorWTVorlauf].ValueX10 < Values[_SpeicherA5].ValueX10 + 5){// Uppps Wärme ist weg
       Status = KollektorStatus_AUSschalten;
     }
     break;
@@ -80,9 +80,9 @@ void KollektorDoEvents (){
   if (Status == KollektorStatus_AUSschalten) {
     digitalWrite(KollektorPumpeAnPin, LOW);
     if (Uhr.GetDateTime(UhrZp).Hour > 19) { // Wenn es schon nach 20Uhr ist, wird keine Wärme mehr kommen. Deswegen verhindern wir das Try
-      KollektorGesperrtBisZp = UhrZp / 86400 * 86400 + 115200;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 8h = morgen um 8 ist Kollektor wieder freigegeben
+      KollektorGesperrtBisZp = UhrZp / 86400 * 86400 + 111600;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 7h = morgen um 7 ist Kollektor wieder freigegeben
       Status = KollektorStatus_Sperrzeit;
-}    else {
+    } else {
       millis1 = millis();
       Status = KollektorStatus_AUS;
     }

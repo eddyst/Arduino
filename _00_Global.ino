@@ -1,7 +1,6 @@
 typedef struct {
   uint8_t Changed  :   1;
   int16_t ValueX10 :  15;
-//  prog_char *Name;
 } data;
 
 #define       _HKAnforderung               0

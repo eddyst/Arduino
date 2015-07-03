@@ -39,7 +39,7 @@ void SolarDoEvents (){
   ValueX10new1 = Values[ _SolarStatus].ValueX10;
   switch (ValueX10new1){
   case SolarStatus_AUS: // Leider der häufigste Status aber vielleicht kömmer Anschalten?
-    if ( Values[ _KollektorStatus].ValueX10 == KollektorStatus_AN && Values[_KollektorWTVorlauf].ValueX10 > Values[_SpeicherA5].ValueX10 + 50) {
+    if ( Values[ _KollektorStatus].ValueX10 == KollektorStatus_AN && Values[_KollektorWTVorlauf].ValueX10 > Values[_SpeicherA5].ValueX10 + 30) {
       digitalWrite(SolarPumpeAnPin, HIGH);
       ValueX10new1 = SolarStatus_AN_5;
     }

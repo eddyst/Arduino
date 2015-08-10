@@ -52,24 +52,24 @@ void setup()
 void EthSend() {
   for (uint8_t pin = 0; pin < pinCount; pin++) {
     if (   (bitRead( Changed, pin) == 1 )
-           || (                               millis() - LastSend[pin] > 60000)) {
+        || (                               millis() - LastSend[pin] > 60000)) {
       LastSend[pin] = millis();
       if (ethLogLevel > 0) {
       Debug.print( F( "set KollektorValueDach"));
-      Debug.print( pin + 1);
-      Debug.print( F( " "));
-      Debug.println(LastValue[pin]);
-      Debug.print( F( "set KollektorDach"));
-      Debug.print( pin + 1);
-      Debug.print( F( " "));
-      Debug.println(( float)LastTemp[pin] / 10, 1);      }
       client.print( F( "set KollektorValueDach"));
+      Debug.print( pin + 1);
       client.print( pin + 1);
+      Debug.print( F( " "));
       client.print( F( " "));
+      Debug.println(LastValue[pin]);
       client.println(LastValue[pin]);
+      Debug.print( F( "set KollektorDach"));
       client.print( F( "set KollektorDach"));
+      Debug.print( pin + 1);
       client.print( pin + 1);
+      Debug.print( F( " "));
       client.print( F( " "));
+      Debug.println(( float)LastTemp[pin] / 10, 1);      }
       client.println(( float)LastTemp[pin] / 10, 1);
       bitClear(Changed, pin);
     }

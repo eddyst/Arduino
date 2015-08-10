@@ -13,3 +13,6 @@
 [submodule "projects/Dach"]
 	path = projects/Dach
 	url = https://github.com/eddyst/Dach.git
+[submodule "projects/libraries/Bounce2"]
+	path = projects/libraries/Bounce2
+	url = https://github.com/thomasfredericks/Bounce2.git

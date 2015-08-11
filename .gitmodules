@@ -19,3 +19,6 @@
 [submodule "SourceCode"]
 	path = SourceCode
 	url = https://github.com/arduino/Arduino.git
+[submodule "projects/libraries/OneWire"]
+	path = projects/libraries/OneWire
+	url = https://github.com/PaulStoffregen/OneWire.git

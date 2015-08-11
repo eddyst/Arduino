@@ -22,3 +22,6 @@
 [submodule "projects/libraries/OneWire"]
 	path = projects/libraries/OneWire
 	url = https://github.com/PaulStoffregen/OneWire.git
+[submodule "projects/Nachtlampen"]
+	path = projects/Nachtlampen
+	url = https://github.com/eddyst/Nachtlampen.git

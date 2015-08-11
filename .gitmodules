@@ -16,3 +16,6 @@
 [submodule "projects/libraries/Bounce2"]
 	path = projects/libraries/Bounce2
 	url = https://github.com/thomasfredericks/Bounce2.git
+[submodule "SourceCode"]
+	path = SourceCode
+	url = https://github.com/arduino/Arduino.git

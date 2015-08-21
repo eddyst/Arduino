@@ -25,3 +25,6 @@
 [submodule "projects/Nachtlampen"]
 	path = projects/Nachtlampen
 	url = https://github.com/eddyst/Nachtlampen.git
+[submodule "projects/libraries/PinChangeInt"]
+	path = projects/libraries/PinChangeInt
+	url = https://github.com/GreyGnome/PinChangeInt.git

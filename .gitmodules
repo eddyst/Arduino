@@ -28,3 +28,6 @@
 [submodule "projects/libraries/PinChangeInt"]
 	path = projects/libraries/PinChangeInt
 	url = https://github.com/GreyGnome/PinChangeInt.git
+[submodule "projects/libraries/Clock"]
+	path = projects/libraries/Clock
+	url = https://github.com/Megunolink/Clock.git

@@ -75,10 +75,30 @@ void ethDoEvents() {
     }
   }
   // Maybe we will get a new IP so lets do this when no client is connected
+  //0: nothing happened
+  //1: renew failed
+  //2: renew success
+  //3: rebind fail
+  //4: rebind success
   #if ethLogLevel > 0
-    Debug.print( F( "eth: \nEthernet.maintain: "));
-    Debug.println(Ethernet.maintain());
-  #else
+    #if ethLogLevel > 2 // 3 AlleInfos
+        Debug.print( F( "eth: Ethernet.maintain 3: "));
+        Debug.println(Ethernet.maintain());
+    #else 
+        byte EthMaintainResult = Ethernet.maintain();
+      #if ethLogLevel > 1 // 2 Ein/Ausgehender Datenverkehr
+        if (EthMaintainResult >0) {
+          Debug.print( F( "eth: \nEthernet.maintain 2: "));
+          Debug.println(EthMaintainResult);
+        }
+      #else // 1 Fehlermeldungen
+        if ((EthMaintainResult == 1) || (EthMaintainResult == 3)) { // Fail
+          Debug.print( F( "eth: \nEthernet.maintain 1: "));
+          Debug.println(EthMaintainResult);
+        }
+      #endif
+    #endif
+  #else   //0 nix anzeigen
     Ethernet.maintain();                         
   #endif
 }  

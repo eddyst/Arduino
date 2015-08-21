@@ -1,39 +1,40 @@
 #include <Controllino.h>
 #include <SPI.h>
+#include <PinChangeInt.h>
+#include <PinChangeIntConfig.h>
 
-/*
-This is basic example of arduino library use.
-Any input or output can be referenced as CONTROLLINO_ and add the sign printed next to the I/O.
-Remember please to install Controllino plugin before testing this sketch.
-Also remember you need to select either CONTROLLINO MINI,CONTROLLINO MAXI or CONTROLLINO MEGA as your board.
-*/
+int pin0 = CONTROLLINO_D0;
+int pin1 = CONTROLLINO_D1;
+volatile int state0 = LOW;
+volatile int state1 = LOW;
 
-void setup() 
+#define PIN CONTROLLINO_IN1  // the pin we are interested in
+
+void setup()
 {
-  /* Here we prepare D0 as output and A0 as input*/
-  pinMode(CONTROLLINO_D0, OUTPUT);
-  pinMode(CONTROLLINO_A0, INPUT);
-  /* Here we initialize serial at 9600 baudrate for reporting */
-  Serial.begin(9600);
-  /* Now we report start of example */
-  Serial.println("CONTROLLINO example sketch is starting now");
+  pinMode(pin0, OUTPUT);
+  pinMode(pin1, OUTPUT);
+
+  pinMode(PIN, INPUT);     //set the pin to input
+  digitalWrite(PIN, LOW); //do not use the internal pullup resistor
+  PCintPort::attachInterrupt(PIN, blink0, RISING); // attach a PinChange Interrupt to our pin on the rising edge
+// (RISING, FALLING and CHANGE all work with this library)
+// and execute the function burpcount when that pin changes
 }
 
-void loop() 
+void loop()
 {
-  /* We set digital output D0 to low voltage */
-  digitalWrite(CONTROLLINO_D0, LOW);
-  /* Now we read out the voltage on Analog input A0 and report it */
-  Serial.print("A0: ");
-  Serial.println(analogRead(CONTROLLINO_A0));
-  /* We wait one second (1000 ms) and repeat the process */
-  delay(1000);
-  /* We set digital output D0 to high voltage now */
-  digitalWrite(CONTROLLINO_D0, HIGH);
-  /* And again we read out the voltage on Analog input A0 and report it */
-  Serial.print("A0: ");
-  Serial.println(analogRead(CONTROLLINO_A0));
-  /* At least we wait again one second and let the loop repeat itself */
-  delay(1000);
+  digitalWrite(pin0, state0);
+  digitalWrite(pin1, state1);
+}
+
+void blink0()
+{
+  state0 = !state0;
+}
+
+void blink1()
+{
+  state1 = !state1;
 }
 

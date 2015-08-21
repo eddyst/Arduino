@@ -22,3 +22,6 @@
 [submodule "projects/libraries/OneWire"]
 	path = projects/libraries/OneWire
 	url = https://github.com/PaulStoffregen/OneWire.git
+[submodule "projects/libraries/PinChangeInt"]
+	path = projects/libraries/PinChangeInt
+	url = https://github.com/GreyGnome/PinChangeInt.git

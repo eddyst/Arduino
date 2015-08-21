@@ -79,7 +79,9 @@ void KollektorDoEvents (){
   }
   if (Status == KollektorStatus_AUSschalten) {
     digitalWrite(KollektorPumpeAnPin, LOW);
-    if (Uhr.GetDateTime(UhrZp).Hour > 19) { // Wenn es schon nach 20Uhr ist, wird keine Wärme mehr kommen. Deswegen verhindern wir das Try
+    DateTime dt;
+    Uhr.DecodeTo(dt);
+    if (dt.Hour > 19) { // Wenn es schon nach 20Uhr ist, wird keine Wärme mehr kommen. Deswegen verhindern wir das Try
       KollektorGesperrtBisZp = UhrZp / 86400 * 86400 + 111600;                  // (Timestamp / 86400(Sekunden pro Tag)) gerundeter  * 86400(Sekunden pro Tag) = Tagesanfang + 24h = morgen + 7h = morgen um 7 ist Kollektor wieder freigegeben
       Status = KollektorStatus_Sperrzeit;
     } else {

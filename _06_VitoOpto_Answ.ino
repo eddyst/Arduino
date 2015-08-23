@@ -1,4 +1,4 @@
-void VitoDebugMsg(uint8_t LogLevel, char* Msg){
+void VitoDebugMsg(uint8_t LogLevel, const char* Msg){
   if (vitoLogLevel > 0) {
     if (vitoLogLevel >= LogLevel) {
 //      Debug.print ( F( "\nVito ");

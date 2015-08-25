@@ -65,9 +65,9 @@ void HKVentil() {
       } else {
         if (millis() - HKVentilRechnenMillis >= posIntervall ) {
           HKVentilRechnenMillis = millis();
-          if ( Values[_HKVorlaufTemp1].ValueX10 == Values[_HKVorlaufTempSoll].ValueX10) {   // Bei Rücklauf = Soll drehen wir einfach auf Rücklauf sonst gibts #DIV/0
+          if ( Values[_HKVorlaufTemp1].ValueX10 <= Values[_HKVorlaufTempSoll].ValueX10) {   // Bei Rücklauf = Soll drehen wir einfach auf Rücklauf sonst gibts #DIV/0
             if (hkLogLevel > 0) Debug.println ("HK: Sonderfall 1");
-            ValueX10new1 =  0;
+            ValueX10new1 =  1000;
           } else if ( Values[_HKVorlaufTemp1].ValueX10 == Values[_HKRuecklaufTemp2].ValueX10) {  // Bei Vorlauf = Rücklauf gibts auch #DIV/0. Wir machen vorsichtshalber erstmal garnischt
             if (hkLogLevel > 0) Debug.println ("HK: Sonderfall 2");
             ValueX10new1 = Values[_HKVorlaufValue].ValueX10;
@@ -81,18 +81,23 @@ void HKVentil() {
             Debug.print( F (" tmpInt32_1.1=")); Debug.print( tmpInt32_1);
             tmpInt32_1 = (int32_t)Schritte * tmpInt32_1 / (Fak + tmpInt32_1);
             Debug.print( F (" tmpInt32_1.2=")); Debug.print(tmpInt32_1);
-            static uint16_t vDelta = 0;
-    #define vDeltaPlusMinusX10 100
+            static int16_t vDelta = 0;
+    #define vDeltaPlusMinusX10 1000
             vDelta = vDelta + ((Values[_HKVorlaufTempSoll].ValueX10 - Values[_HKVorlaufTemp2].ValueX10) / 5);
             if ( vDelta > vDeltaPlusMinusX10) 
               vDelta = vDeltaPlusMinusX10;
             else if ( vDelta < -vDeltaPlusMinusX10)
               vDelta = -vDeltaPlusMinusX10;
             Debug.print(F(" vDelta=")); Debug.print(vDelta);
-            tmpInt32_1 = tmpInt32_1 + vDelta;
-            ValueX10new1 = min( Schritte, max( 0, tmpInt32_1));
-            Debug.print(F(" ValueX10new1=")); Debug.println (ValueX10new1 );
+            ValueX10new1 = tmpInt32_1 + (vDelta/10);
           }
+          Debug.print(F(" -> ")); Debug.print (ValueX10new1 );
+          if (Values[_HKVorlaufValue].ValueX10 != ValueUnknown && ValueX10new1 - Values[_HKVorlaufValue].ValueX10 > 10 ) 
+            ValueX10new1 = Values[_HKVorlaufValue].ValueX10 + 10;
+          else if (Values[_HKVorlaufValue].ValueX10 != ValueUnknown && ValueX10new1 - Values[_HKVorlaufValue].ValueX10 < -10 ) 
+            ValueX10new1 = Values[_HKVorlaufValue].ValueX10 - 10;
+          ValueX10new1 = min( Schritte, max( 0, ValueX10new1));
+          Debug.print(F(" ValueX10new1=")); Debug.println (ValueX10new1 );
         }
       }
     }

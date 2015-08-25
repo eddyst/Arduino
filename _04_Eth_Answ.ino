@@ -150,7 +150,7 @@ void ethDoAnswers() {
                           AddrByteIndex++;
                         }
                         if (ethLogLevel > 2) {
-                          Debug.print( F ( "  digit = ")); 
+                          Debug.print( F ( "  digit=")); 
                           Debug.println(digit, DEC);
                         }
                         switch (HexCharIndex++){
@@ -165,15 +165,16 @@ void ethDoAnswers() {
                         if (ethLogLevel > 2) {
                           Debug.print( F ( "  Addr["));
                           Debug.print(AddrByteIndex);
-                          Debug.print( F ( "] = ")); 
+                          Debug.print( F ( "]=")); 
                           Debug.print(Addr[AddrByteIndex],DEC);
-                          Debug.print( F ( " = ")); 
+                          Debug.print( F ( "=")); 
                           Debug.println(Addr[AddrByteIndex],HEX);
                         }
                       } 
                       else {
-                        if (ethLogLevel > 2) Debug.println( F( "  parseHexChar = false"));
+                        if (ethLogLevel > 2) Debug.println( F( "  parseHexChar==false"));
                         if (AfterFirstChar) {
+                          if (ethLogLevel > 2) Debug.println( F( "  HexCharIndex=0"));
                           HexCharIndex = 0; 
                           AddrByteIndex++;
                         }

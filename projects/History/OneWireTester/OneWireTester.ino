@@ -2,7 +2,7 @@
 #include <DallasTemperature.h>
 
 // Data wire is plugged into port 2 on the Arduino
-#define ONE_WIRE_BUS 48
+#define ONE_WIRE_BUS 3
 #define TEMPERATURE_PRECISION 12
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
@@ -80,10 +80,10 @@ void printTemperature(DeviceAddress deviceAddress)
 
   // method 2 - faster
   float tempC = sensors.getTempC(deviceAddress);
-  Serial.print("Temp C: ");
-  Serial.print(tempC);
-  Serial.print(" Temp F: ");
-  Serial.println(DallasTemperature::toFahrenheit(tempC)); // Converts tempC to Fahrenheit
+  Serial.print(" Temp C: ");
+  Serial.println(tempC);
+//  Serial.print(" Temp F: ");
+//  Serial.println(DallasTemperature::toFahrenheit(tempC)); // Converts tempC to Fahrenheit
 }
 
 void loop(void)
@@ -103,7 +103,7 @@ void loop(void)
 	{
 		// Output the device ID
 		Serial.print("Temperature for device: ");
-		Serial.println(i,DEC);
+		Serial.print(i,DEC);
 		
 		// It responds almost immediately. Let's print out the data
 		printTemperature(tempDeviceAddress); // Use a simple function to print out the data

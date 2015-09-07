@@ -29,21 +29,22 @@ IPAddress ip(192,168,54, 54);
 // (port 80 is default for HTTP):
 EthernetServer server(80);
 
-int LEDpin = 4;
+#define RESETpin  4
+#define LEDpin   13
 String readString = String(30);
-String state = String(3);
-
+uint8_t Counter = 0;
 void setup()
 {
   // start the Ethernet connection and the server:
   Ethernet.begin(mac, ip);
   server.begin();
   
-  //Sets the LEDpin as an output
+  //Sets the RESETpin as an output
+  pinMode(RESETpin,OUTPUT);
+  digitalWrite(RESETpin,LOW);
   pinMode(LEDpin,OUTPUT);
-  
-  digitalWrite(LEDpin,HIGH);
-  state = "ON";
+  digitalWrite(LEDpin,LOW);
+
 }
 
 void loop()
@@ -51,6 +52,7 @@ void loop()
   // listen for incoming clients
   EthernetClient client = server.available();
   if (client) {
+    digitalWrite(LEDpin,HIGH);
     // an http request ends with a blank line
     boolean currentLineIsBlank = true;
     while (client.connected()) {
@@ -66,31 +68,23 @@ void loop()
 
         if (c == '\n' && currentLineIsBlank) {
           // send a standard http response header
-          int LED = readString.indexOf("LED=");
+          int LED = readString.indexOf("reset");
 
-          if (readString.substring(LED,LED+5) == "LED=T") {
-            digitalWrite(LEDpin,HIGH);
-            state = "ON";
+          if (readString.substring(LED,LED+5) == "reset") {
+            digitalWrite(RESETpin,HIGH);
+            delay(3000);
+            digitalWrite(RESETpin,LOW);
+            Counter++;
           }
-          else if (readString.substring(LED,LED+5) == "LED=F") {
-            digitalWrite(LEDpin,LOW);
-            state = "OFF";
-          } 
           client.println("HTTP/1.1 200 OK");
           client.println("Content-Type: text/html");
           client.println();
 
-          client.print("LED is ");
-          client.print(state);
+          client.print("Reset Counter = ");
+          client.print(Counter);
           client.print("<br><br>");
           
-          if (state == "ON") {
-            client.println("<a href=\"./?LED=F\">Turn Off<a>");
-          }
-          else {
-            client.println("<a href=\"./?LED=T\">Turn On<a>");
-          }
-          
+          client.println("<a href=\"./?reset\">Reset<a>");
           break;
         }
         if (c == '\n') {
@@ -108,5 +102,6 @@ void loop()
     readString = "";
     // close the connection:
     client.stop();
+    digitalWrite(LEDpin,LOW);
   }
 }

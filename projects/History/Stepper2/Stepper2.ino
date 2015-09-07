@@ -7,12 +7,12 @@ void setup() {
   pinMode(PinSleep    , OUTPUT);
   pinMode(PinDirection, OUTPUT);
   pinMode(PinDoStep   , OUTPUT);
-  digitalWrite( PinSleep, HIGH);
+  digitalWrite( PinSleep, LOW);
 }
 
-int s = 320, w=6000, st=0;
+uint32_t s = 800000, w=120, st=0;
 void loop() {
-  // put your main code here, to run repeatedly: 
+/*  // put your main code here, to run repeatedly: 
   while (Serial.available()) {
     // get the new byte:
     char inChar = (char)Serial.read();
@@ -34,30 +34,30 @@ void loop() {
       break;
     }
   }
-  Serial.print(w);    Serial.print(" ");
-    Serial.println(st);
+  */
+  Serial.print(s);    Serial.print(" ");
+    Serial.println(w);
 
   digitalWrite( PinDirection, HIGH);
   step(s,w,st);
-  delay(5000);
+  delay(1000);
   digitalWrite( PinDirection, LOW);
   step(s,w,st);
-  delay(5000);
+  delay(1000);
+  
 }
 
-void step(uint16_t Steps, uint16_t Wait, uint16_t s) {
- for(int i=0;i<Steps;i++){
+void step(uint32_t Steps, uint32_t Wait, uint16_t s) {
+  digitalWrite( PinSleep, HIGH);
+  for(uint32_t i=0;i<Steps;i++){
     digitalWrite(PinDoStep, LOW);
-//    delayMicroseconds(Wait);
-    //delay(Wait);
     digitalWrite(PinDoStep, HIGH);
     int x = Wait - i*s;
-    Serial.write(char(x));
     delayMicroseconds(x);
-    //delay(Wait);
   }
+  digitalWrite( PinSleep, LOW);
 }
-
+/*
 const uint16_t stepTime = 1200;
 int Pos = 0;
 uint32_t lastStepMicros;
@@ -74,3 +74,4 @@ void DoStep(){
     lastStepMicros = micros();
   }
 }
+*/

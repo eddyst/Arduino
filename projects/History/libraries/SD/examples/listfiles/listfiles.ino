@@ -17,6 +17,7 @@
  This example code is in the public domain.
  	 
  */
+#include <SPI.h>
 #include <SD.h>
 
 File root;
@@ -76,6 +77,7 @@ void printDirectory(File dir, int numTabs) {
        Serial.print("\t\t");
        Serial.println(entry.size(), DEC);
      }
+     entry.close();
    }
 }
 

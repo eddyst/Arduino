@@ -16,9 +16,6 @@
 [submodule "projects/libraries/OneWire"]
 	path = projects/libraries/OneWire
 	url = https://github.com/PaulStoffregen/OneWire.git
-[submodule "projects/Nachtlampen"]
-	path = projects/Nachtlampen
-	url = https://github.com/eddyst/Nachtlampen.git
 [submodule "projects/libraries/PinChangeInt"]
 	path = projects/libraries/PinChangeInt
 	url = https://github.com/GreyGnome/PinChangeInt.git

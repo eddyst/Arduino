@@ -7,9 +7,6 @@
 [submodule "projects/libraries/Vitodens"]
 	path = projects/libraries/Vitodens
 	url = https://github.com/eddyst/Vitodens.git
-[submodule "projects/SH"]
-	path = projects/SH
-	url = https://github.com/eddyst/SH.git
 [submodule "projects/libraries/Bounce2"]
 	path = projects/libraries/Bounce2
 	url = https://github.com/thomasfredericks/Bounce2.git
@@ -19,9 +16,6 @@
 [submodule "projects/libraries/OneWire"]
 	path = projects/libraries/OneWire
 	url = https://github.com/PaulStoffregen/OneWire.git
-[submodule "projects/Nachtlampen"]
-	path = projects/Nachtlampen
-	url = https://github.com/eddyst/Nachtlampen.git
 [submodule "projects/libraries/PinChangeInt"]
 	path = projects/libraries/PinChangeInt
 	url = https://github.com/GreyGnome/PinChangeInt.git

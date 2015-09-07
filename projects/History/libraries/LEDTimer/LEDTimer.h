@@ -16,6 +16,7 @@ class LEDTimer{
     void blink(uint16_t onMs, uint16_t offMs, uint8_t times);
     void blinkBegin( uint16_t onMs);
     void blinkBegin( uint16_t onMs, uint16_t offMs, uint8_t times);
+	void blinkDisable();
 	void doEvents( void);
 	void onBlinkEnd(void (*dFunction)());
   private:

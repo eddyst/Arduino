@@ -52,6 +52,9 @@ void LEDTimer::blinkBegin( uint16_t newonMs, uint16_t newoffMs, uint8_t newtimes
 	this->times = newtimes * 2 - 1; //times * 2(on/off) - 1(instant on)
 	on();
 }
+void LEDTimer::blinkDisable() {
+	this->times = 0;
+}
 
 void LEDTimer::onBlinkEnd(void (*Func)()){
 	blinkEndCallback = Func;
@@ -59,7 +62,7 @@ void LEDTimer::onBlinkEnd(void (*Func)()){
 
 void LEDTimer::doEvents( void) {
 	if (this->times > 0) {
-		if (times % 2 == 1) {
+		if (times & 1) {
 			if ( millis() - this->timer >= this-> onMs) {
 				off();
 				times--;

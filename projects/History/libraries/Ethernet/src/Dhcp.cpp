@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include "Dhcp.h"
 #include "Arduino.h"
-#include "util.h"
+#include "utility/util.h"
 
 int DhcpClass::beginWithDHCP(uint8_t *mac, unsigned long timeout, unsigned long responseTimeout)
 {
@@ -329,8 +329,9 @@ uint8_t DhcpClass::parseDHCPResponse(unsigned long responseTimeout, uint32_t& tr
                 
                 case dhcpServerIdentifier :
                     opt_len = _dhcpUdpSocket.read();
-                    if( *((uint32_t*)_dhcpDhcpServerIp) == 0 || 
-                        IPAddress(_dhcpDhcpServerIp) == _dhcpUdpSocket.remoteIP() )
+                    if ((_dhcpDhcpServerIp[0] == 0 && _dhcpDhcpServerIp[1] == 0 &&
+                         _dhcpDhcpServerIp[2] == 0 && _dhcpDhcpServerIp[3] == 0) ||
+                        IPAddress(_dhcpDhcpServerIp) == _dhcpUdpSocket.remoteIP())
                     {
                         _dhcpUdpSocket.read(_dhcpDhcpServerIp, sizeof(_dhcpDhcpServerIp));
                     }

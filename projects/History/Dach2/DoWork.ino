@@ -23,7 +23,7 @@ void DoWork() {
     }
     break;
   case 1:
-    if (millis() - LastDoWork > 4000) {
+    if (millis() - LastDoWork > 2000) {
       Debug.println();
       unsigned long ms;
       unsigned int sample[pinCount - 1];   //reset the sample value
@@ -45,7 +45,7 @@ void DoWork() {
           #endif
         }
         int z=0; 
-        while (micros() - ms < 600) {
+        while (micros() - ms < 2000) {
           z++; 
         }
         #if aDCLogLevel > 2
@@ -64,11 +64,7 @@ void DoWork() {
           Debug.print(sensorValue);
         #endif
         LastValue[pin] = sensorValue;
-        if (sensorValue < 400) {
-          sensorValue = (sensorValue * 15 - 1620) / 10;
-        } else {
-          sensorValue = (sensorValue * 19 - 3320) / 10;
-        }
+        sensorValue = (-75000 + (sensorValue - 25) * 1505) / 1000;
         #if aDCLogLevel > 1
           Debug.print(F(" --> "));  
           Debug.print(sensorValue); 

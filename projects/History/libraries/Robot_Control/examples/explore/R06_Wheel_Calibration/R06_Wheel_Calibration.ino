@@ -13,8 +13,6 @@
 #include "scripts_library.h"
 
 #include <ArduinoRobot.h>
-#include <Wire.h>
-#include <SPI.h>
 
 void setup() {
   Serial.begin(9600);

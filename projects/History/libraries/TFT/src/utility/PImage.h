@@ -23,7 +23,6 @@ public:
   
   static PImage loadImage(const char * fileName);
   
-  void close() { _bmpFile.close(); }
   
   bool isValid() { return _valid; }
   

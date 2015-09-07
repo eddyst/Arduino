@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by Cristian Maglie <c.maglie@arduino.cc>
+ * Copyright (c) 2012 by Cristian Maglie <c.maglie@bug.st>
  * Audio library for Arduino Due.
  *
  * This file is free software; you can redistribute it and/or modify

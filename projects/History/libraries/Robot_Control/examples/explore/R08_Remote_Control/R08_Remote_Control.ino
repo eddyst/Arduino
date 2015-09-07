@@ -27,8 +27,6 @@
 #include <IRremote.h>
 #include <IRremoteTools.h>
 #include <ArduinoRobot.h>
-#include <Wire.h>
-#include <SPI.h>
 
 // Define a few commands from your remote control
 #define IR_CODE_FORWARD 284154405

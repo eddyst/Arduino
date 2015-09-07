@@ -50,10 +50,10 @@ void setup() {
 
   TFTscreen.stroke(0, 0, 255);
   TFTscreen.println();
-  TFTscreen.println(F("Arduino TFT Bitmap Example"));
+  TFTscreen.println("Arduino TFT Bitmap Example");
   TFTscreen.stroke(0, 0, 0);
-  TFTscreen.println(F("Open serial monitor"));
-  TFTscreen.println(F("to run the sketch"));
+  TFTscreen.println("Open serial monitor");
+  TFTscreen.println("to run the sketch");
 
   // initialize the serial port: it will be used to
   // print some diagnostic info
@@ -67,12 +67,12 @@ void setup() {
 
   // try to access the SD card. If that fails (e.g.
   // no card present), the setup process will stop.
-  Serial.print(F("Initializing SD card..."));
+  Serial.print("Initializing SD card...");
   if (!SD.begin(sd_cs)) {
-    Serial.println(F("failed!"));
+    Serial.println("failed!");
     return;
   }
-  Serial.println(F("OK!"));
+  Serial.println("OK!");
 
   // initialize and clear the GLCD screen
   TFTscreen.begin();
@@ -82,7 +82,7 @@ void setup() {
   // image file.
   logo = TFTscreen.loadImage("arduino.bmp");
   if (!logo.isValid()) {
-    Serial.println(F("error while loading arduino.bmp"));
+    Serial.println("error while loading arduino.bmp");
   }
 }
 
@@ -92,7 +92,7 @@ void loop() {
     return;
   }
 
-  Serial.println(F("drawing image"));
+  Serial.println("drawing image");
 
   // get a random location where to draw the image.
   // To avoid the image to be draw outside the screen,

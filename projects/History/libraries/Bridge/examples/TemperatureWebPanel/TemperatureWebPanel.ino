@@ -8,8 +8,6 @@
  * TMP36 temperature sensor on analog pin A1
  * SD card attached to SD card slot of the Arduino Yún
 
- This sketch must be uploaded via wifi. REST API must be set to "open".
-
  Prepare your SD card with an empty folder in the SD root
  named "arduino" and a subfolder of that named "www".
  This will ensure that the Yún will create a link
@@ -39,7 +37,7 @@
 #include <YunServer.h>
 #include <YunClient.h>
 
-// Listen on default port 5555, the webserver on the Yún
+// Listen on default port 5555, the webserver on the Yun
 // will forward there all the HTTP requests for us.
 YunServer server;
 String startString;

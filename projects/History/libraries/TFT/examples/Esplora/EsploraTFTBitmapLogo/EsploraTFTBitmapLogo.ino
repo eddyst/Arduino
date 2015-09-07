@@ -41,10 +41,10 @@ void setup() {
 
   EsploraTFT.stroke(0, 0, 255);
   EsploraTFT.println();
-  EsploraTFT.println(F("Arduino LCD Bitmap Example"));
+  EsploraTFT.println("Arduino LCD Bitmap Example");
   EsploraTFT.stroke(0, 0, 0);
-  EsploraTFT.println(F("Open serial monitor"));
-  EsploraTFT.println(F("to run the sketch"));
+  EsploraTFT.println("Open serial monitor");
+  EsploraTFT.println("to run the sketch");
 
   // initialize the serial port: it will be used to
   // print some diagnostic info
@@ -55,9 +55,9 @@ void setup() {
 
   // try to access the SD card. If that fails (e.g.
   // no card present), the Esplora's LED will turn red.
-  Serial.print(F("Initializing SD card..."));
+  Serial.print("Initializing SD card...");
   if (!SD.begin(SD_CS)) {
-    Serial.println(F("failed!"));
+    Serial.println("failed!");
     Esplora.writeRed(255);
     return;
   }
@@ -85,7 +85,7 @@ void loop() {
     return;
   }
 
-  Serial.println(F("drawing image"));
+  Serial.println("drawing image");
 
   // get a random location where to draw the image.
   // To avoid the image to be draw outside the screen,

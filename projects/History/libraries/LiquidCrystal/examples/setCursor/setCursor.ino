@@ -60,7 +60,7 @@ void loop() {
       // loop over the rows:
       for (int thisRow = 0; thisRow < numCols; thisRow++) {
         // set the cursor position:
-        lcd.setCursor(thisCol, thisRow);
+        lcd.setCursor(thisRow, thisCol);
         // print the letter:
         lcd.write(thisLetter);
         delay(200);

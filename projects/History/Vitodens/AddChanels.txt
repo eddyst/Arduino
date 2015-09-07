@@ -1,0 +1,5 @@
+http://volkszaehler/middleware/channel.json?operation=add&type=value&title=Heizkreispumpenstatus
+
+http://volkszaehler/middleware.php/group/e8c488a0-2a56-11e2-b9fb-cbeacc19fb72.json?operation=add&uuid=f9ce65a0-3310-11e2-887e-fbed7bc2ed83
+
+GET http://volkszaehler/middleware.php/data/3b3ba4e0-2a7c-11e2-97c1-8bd9d000f43f.json?from=01-11-2012

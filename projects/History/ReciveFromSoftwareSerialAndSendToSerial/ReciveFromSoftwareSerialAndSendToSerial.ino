@@ -44,12 +44,24 @@ void setup()
   mySerial.begin(57600);
   mySerial.println("Hello, world?");
 }
+#define s 0
+uint32_t l, r;
+byte x = 0;
 
 void loop() // run over and over
-{
-  if (mySerial.available())
-    Serial.write(mySerial.read());
+{ if ( digitalRead( 13) == HIGH && millis() - r > 100) {
+    digitalWrite( 13, LOW);
+  }
+  if (mySerial.available()) {
+    Serial.println(mySerial.read(), DEC);
+    digitalWrite( 13, HIGH);
+    r=millis();
+  }
   if (Serial.available())
     mySerial.write(Serial.read());
+  if ( s == 1 && millis() - l > 1000) {
+    mySerial.write ( x++);
+    l = millis();
+  }
 }
 

@@ -14,22 +14,34 @@
 // allocate the requested buffer size
 void estBUS::begin ()
 {
-  data_ = (byte *) malloc (bufferSize_);
-  out_ = (byte *) malloc (bufferSize_ + 4);
+  inData_ = (byte *) malloc (bufferSize_);
+  outData_ = (byte *) malloc (bufferSize_ + 4);
   reset ();
   errorCount_ = 0;
   Modus = reciving;
-
+ 
+  noInterrupts();           // disable all interrupts
+  TCCR2A = 0;
+  TCCR2B = 0;
+  TCNT2  = 0;
+  OCR2A = 150;              // compare match register 16MHz/256/2Hz
+  TCCR2A |= (1 << WGM21);   // CTC mode
+  TCCR2B |= (1 << CS21)              ; //    8 prescaler 
+//TCCR2B |= (1 << CS21) | (1 << CS20); //   64 prescaler 
+//TCCR2B |= (1 << CS22)              ; //  256 prescaler 
+//TCCR2B |= (1 << CS22) | (1 << CS20); // 1024 prescaler 
+// Wir starten den Timer erst später:  TIMSK2 |= (1 << OCIE2A);  // enable timer compare interrupt
+  interrupts();             // enable all interrupts
 } // end of estBUS::begin 
 
 // get rid of the buffer
 void estBUS::stop ()
 {
   reset ();
-  free (data_);
-  data_ = NULL;
-  free (out_);
-  out_ = NULL;
+  free (inData_);
+  inData_ = NULL;
+  free (outData_);
+  outData_ = NULL;
 } // end of estBUS::stop 
 
 // called after an error to return to "not in a packet"
@@ -61,80 +73,66 @@ byte estBUS::crc8 (const byte *addr, byte len)
 }  // end of estBUS::crc8
 
 
-// send a message of "length" bytes (max 255) to other end
-// put STX at start, ETX at end, and add CRC
+// send a message of "length" bytes (max 128) to other end
+// put length (with first bit have to be 0) at start, followed by data, and add CRC of data
 boolean estBUS::sendMsg (const byte * data, const byte length)
 { // no callback? Can't send
-	if (fWriteCallback_ != NULL &&)
+	if (length > 128)
 		return false;
-
-  if (outLength_ == 0) { //nur wenn der outpuffer leer ist, können wir Daten annehmen
-    byte c;
-    out_[outLength_++] = STX;  // STX
-		// send a byte complemented, repeated
-		// only values sent would be (in hex): 
-		//   0F, 1E, 2D, 3C, 4B, 5A, 69, 78, 87, 96, A5, B4, C3, D2, E1, F0
-    for ( byte i = 0; i < length; i++) {
-      // first nibble
-      c = data[i] >> 4;
-      out_[outLength_++] = (c << 4) | (c ^ 0x0F); 
-      // second nibble
-      c = data[i] & 0x0F;
-      out_[outLength_++] = (c << 4) | (c ^ 0x0F);
-    }
-    out_[outLength_++] = ETX;  // ETX
-		byte crc = crc8 (data, length);
-      c = crc >> 4;
-      out_[outLength_++] = (c << 4) | (c ^ 0x0F); 
-      // second nibble
-      c = crc & 0x0F;
-      out_[outLength_++] = (c << 4) | (c ^ 0x0F);
-    outPos_    = 0;
-    modus_ = sending;
-    return true;
-  } 
-  else { 
-    return false;
-  }
+  if (outLength_ > 0)  //nur wenn der outpuffer leer ist, können wir Daten annehmen
+      return false;
+ 
+	outData_[outLength_++] = length;  // STX
+	for ( byte i = 0; i < length; i++) {
+		outData_[outLength_++] = (data[i]);
+	}
+	outData_[outLength_++] = crc8 (data, length);
+	outPos_    = 0;
+	TIMSK2 |= (1 << OCIE2A);  // enable timer compare interrupt
+	return true;
 }  // end of estBUS::sendMsg
 
-
-boolean estBUS::sendRequest (const byte id)
-{ if (fWriteCallback_ != NULL &&)
-		return false;
-  if (outLength_ == 0) { //nur wenn der outpuffer leer ist, können wir Daten annehmen
-    byte c;
-    out_[outLength_++] = RTX;  // STX
-		// send a byte complemented, repeated
-		// only values sent would be (in hex): 
-		//   0F, 1E, 2D, 3C, 4B, 5A, 69, 78, 87, 96, A5, B4, C3, D2, E1, F0
-
-		// first nibble
-    c = id >> 4;
-    out_[outLength_++] = (c << 4) | (c ^ 0x0F); 
-    // second nibble
-    c = id & 0x0F;
-    out_[outLength_++] = (c << 4) | (c ^ 0x0F);
-    outPos_    = 0;
-    modus_ = sending;
-    return true;
-  } 
-  else { 
-    return false;
+ISR(TIMER2_COMPA_vect)          // timer compare interrupt service routine
+{ switch (outPosStep_++) {
+  case 0: //Datenwert für aktuelles Bit setzen
+		digitalWrite( txPin_, bitRead(outData_[ outPosByte_], outPosBit_));
+		break;
+  case 1: //Datenwert für aktuelles Bit prüfen
+		if ( digitalRead( txPin_) != bitRead(outData_[ outPosByte_], outPosBit_)) { // Datenkollission - Senden abbrechen
+			// Kann eigentlich nur beim rezessiven Bit auftreten!
+		  errorCount_ ++;
+			//ToDo: Wechsel in den Lesemodus
+			outPosByte_ = 0;
+			outPosBit_  = 0;
+			outPosStep_ = 0;
+		}
+  case 0: //invertierten Datenwert für aktuelles Bit setzen
+		digitalWrite( txPin_, ~bitRead(outData_[ outPosByte_], outPosBit_));
+		break;
   }
-}  // end of estBUS::sendMsg
+  case 2: //Datenwert für aktuelles Bit prüfen
+		if ( digitalRead( txPin_) != ~bitRead(outData_[ outPosByte_], outPosBit_)) { // Datenkollission - Senden abbrechen
+			// Kann eigentlich nur beim rezessiven Bit auftreten!
+		  errorCount_ ++;
+			//ToDo: Wechsel in den Lesemodus
+			outPosByte_ = 0;
+			outPosBit_  = 0;
+			outPosStep_ = 0;
+		} else {
+			if ( outPosBit_++ > 7) {
+				if ( outPosByte_++ > outLength) {
+					bitClear( TIMSK2, OCIE2A);  // disable timer compare interrupt
+				}
+			}
+			outPosStep_ = 0;
+		}
+}
 
-void estBUS::sendByte (const byte what) {
-  // no callback? Can't send
-  if (fWriteCallback_ == NULL)
-    return;
 
-  fWriteCallback_ (what);
-}  // end of estBUS::sendByte
 
 
 // called periodically from main loop to process data and 
-// assemble the finished packet in 'data_'
+// assemble the finished packet in 'inData_'
 
 // returns true if packet received.
 
@@ -144,11 +142,7 @@ void estBUS::sendByte (const byte what) {
 bool estBUS::update ()
 {
   // no data? can't go ahead (eg. begin() not called)
-  if (data_ == NULL)
-    return false;
-
-  // no callbacks? Can't read
-  if (fAvailableCallback_ == NULL || fReadCallback_ == NULL)
+  if (inData_ == NULL)
     return false;
 
   if ( modus_ == sending && outLength > 0)
@@ -156,7 +150,7 @@ bool estBUS::update ()
 
   fWriteCallback_ (what);
 
-    sendByte (out_[outPos]);
+    sendByte (outData_[outPos]);
   }
   while (fAvailableCallback_ () > 0) 
   {
@@ -196,20 +190,20 @@ bool estBUS::update ()
       // high-order nibble?
       if (firstNibble_)
       {
-        currentByte_ = inByte;
+        currentoutPosByte_ = inByte;
         firstNibble_ = false;
         break;
       }  // end of first nibble
 
       // low-order nibble
-      currentByte_ <<= 4;
-      currentByte_ |= inByte;
+      currentoutPosByte_ <<= 4;
+      currentoutPosByte_ |= inByte;
       firstNibble_ = true;
 
       // if we have the ETX this must be the CRC
       if (haveETX_)
       {
-        if (crc8 (data_, inputPos_) != currentByte_)
+        if (crc8 (inData_, inputPos_) != currentoutPosByte_)
         {
           reset ();
           errorCount_++;
@@ -222,7 +216,7 @@ bool estBUS::update ()
 
       // keep adding if not full
       if (inputPos_ < bufferSize_)
-        data_ [inputPos_++] = currentByte_;
+        inData_ [inputPos_++] = currentoutPosByte_;
       else
       {
         reset (); // overflow, start again

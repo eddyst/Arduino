@@ -11,40 +11,19 @@
  
  Licence: Released for public use.
 
- Improves the RS485 library by using CAN-drivers as hardware.
+ Simple Protokoll to use CAN-drivers as hardware.
  This give's the ability to detect collisons on the bus.
  
- Can send from 1 to 255 bytes from one node to another with:
- 
- * Packet start indicator (STX)
- * Each data byte is doubled and inverted to check validity
- * Packet end indicator (ETX)
- * Packet CRC (checksum)
+Can send from 1 to 128 bytes from one node to all others.
+Each bit is doubled and inverted. This is to check validity 
+and to prevent the timeout of the dominant level ( 400 ms for the chip I use)
+ * Packet length (8 bit of whitch the first one has to be 0)
+ * data
+ * Packet CRC ( 8 bit checksum)
 
- To allow flexibility with hardware (eg. Serial, SoftwareSerial, I2C)
- you provide three "callback" functions which send or receive data. Examples are:
- 
-  size_t fWrite( const byte what) {
-    return Serial.write( what);  
-  }
- 
-  int fAvailable() {
-    return Serial.available();  
-  }
- 
-  int fRead() {
-    return Serial.read();  
-  }
-	 
-  void fPrepareAnswer() {
-	  // Fill 
-	}
-
-  void fMessageRecived() { 
-		// Fill 
-	}
+Example is:
 	
-estBUS myChannel (fRead, fAvailable, fWrite, fPrepareAnswer, fMessageRecived, 20);
+estBUS myChannel ( 20); // bufferLength
 
 void setup {
   myChannel.begin();
@@ -61,32 +40,16 @@ void loop {
 class estBUS 
   {
 
-  typedef size_t ( *WriteCallback         ) ( const byte what                                   ); // send a byte to serial port
-  typedef int    ( *AvailableCallback     ) (                                                   ); // return number of bytes available
-  typedef int    ( *ReadCallback          ) (                                                   ); // read a byte from serial port
-
-	typedef int    ( *PrepareAnswerCallback ) ( const byte TimeSlotID, byte* data, byte dataLength); //ToDo: soll den Sketch nach den Antwortdaten für TimeSlotID fragen
-	typedef int    ( *MessageRecivedCallback) ( const byte TimeSlotID, byte* data, byte dataLength); //Informiert den Sketch über neue Messages für TimeSlotID
+  // where we save incoming stuff
+  volatile uint8_t * inData_;
 	
-  enum {RTX = '\1',   // Request of text = Timeslot for MessageID
-        STX = '\2',   // start of text
-        ETX = '\3'    // end of text
-  };  // end of enum
-  enum enmModus{
-        sending,
-        reciving
-  } ;  // end of enum
+  // where we save outgoing stuff
+  volatile uint8_t * outData_;
+  volatile uint8_t outLength_;
+  volatile uint8_t outPosByte_;
+	volatile uint8_t outPosBit_;
+	volatile uint8_t outPosStep_;
 
-  // callback functions to do reading/writing
-  ReadCallback fReadCallback_;
-  AvailableCallback fAvailableCallback_;
-  WriteCallback fWriteCallback_; 
-  PrepareAnswerCallback fPrepareAnswerCallback_;
-	MessageRecivedCallback fMessageRecivedCallback_;
-	
-  // where we save incoming/outgoing stuff
-  byte * data_;
-  byte * out_;
 	
   // how much data is in the buffer
   const int bufferSize_;
@@ -100,7 +63,7 @@ class estBUS
   // count of errors
   unsigned long errorCount_;
 
-	enmModus modus_;
+//	enmModus modus_;
   
   // variables below are set when we get an STX
   bool haveETX_;
@@ -109,36 +72,24 @@ class estBUS
   bool firstNibble_;
   unsigned long startTime_;
 	
-  byte outLength_;
-  byte outPos_;
 	
   // helper private functions
   byte crc8 (const byte *addr, byte len);
 
-	// send Request (Opens a Timeslot for Clients to Send their Data)
-	boolean estBUS::sendRequest (const byte id)
-	// send data
-	boolean sendMsg (const byte * data, const byte length);
 		// returns true if packet available
   void sendComplemented (const byte what);
   void sendByte (const byte what);
+	uint8_t rxPin_, txPin_;
 	
   public:
     
     // constructor
-    estBUS (ReadCallback fReadCallback, 
-           AvailableCallback fAvailableCallback, 
-           WriteCallback fWriteCallback,
-					 PrepareAnswerCallback fPrepareAnswerCallback,
-					 MessageRecivedCallback fMessageRecivedCallback,
-           const byte bufferSize) :
-        fReadCallback_ (fReadCallback), 
-        fAvailableCallback_ (fAvailableCallback), 
-        fWriteCallback_ (fWriteCallback),
-				fPrepareAnswerCallback_ (fPrepareAnswerCallback),
-				fMessageRecivedCallback_ (fMessageRecivedCallback),
+    estBUS (const uint8_t rxPin, const uint8_t txPin, const byte bufferSize) :
+				rxPin_ (rxPin),
+				txPin_ (txPin),
         bufferSize_ (bufferSize),
-        data_ (NULL) {}
+        inData_ (NULL),
+        outData_ (NULL) {}
   
     // destructor - frees memory used
     ~estBUS () { stop (); }
@@ -155,11 +106,13 @@ class estBUS
     // reset to no incoming data (eg. after a timeout)
     void reset ();
 
+		// send data
+		boolean sendMsg (const byte * data, const byte length);
   
 		bool available () const { return available_; };
     // once available, returns the address of the current message
-    const byte * getData ()   const { return data_; }
-    const byte   getLength () const { return inputPos_; }
+    const uint8_t * getData ()   const { return inData_; }
+    const uint8_t   getLength () const { return inputPos_; }
     
     // return how many errors we have had
     unsigned long getErrorCount () const { return errorCount_; }

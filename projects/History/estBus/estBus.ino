@@ -1,11 +1,8 @@
-#include <SoftwareSerial.h>
+#include <Arduino.h>
 #include <estBUS.h>
 
 #define rxPin 10
 #define txPin 11
-#define bufferSize 20
-estBUS myChannel ( rxPin, txPin, bufferSize); //rxPin, txPin, bufferSize
-uint32_t zp;
 
 typedef union {
   uint8_t bytes[5];
@@ -16,40 +13,48 @@ typedef union {
 }
 msgType;
 
-void setup ()
-{
-  Serial.begin  (115200);
+estBUS mySerial(rxPin, txPin); // RX, TX
+
+void setup()
+{ 
+  // Open serial communications and wait for port to open:
+  Serial.begin(115200);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for Leonardo only
+  }
+
   Serial.println( F("Start"));
   pinMode       (13        , OUTPUT);  // LED
   digitalWrite  (13        , LOW );
-  myChannel.begin ();
-  randomSeed(analogRead(0));
-}  // end of setup
+  // set the data rate for the SoftwareSerial port
+  mySerial.begin();
+//  mySerial.println("Hello, world?");
+}
+uint32_t zp;
+uint8_t x;
 
-void loop ()
-{
-  //  myChannel.sendMsg (msg, sizeof (msg));
-  msgType msg;
-  if (myChannel.update ())
-  {
-    Serial.print ("IN: ");
-//    Serial.write (myChannel.getData (), myChannel.getLength ());
-    Serial.println ();
-    for ( uint8_t i = 0; i < min( sizeof (msg), myChannel.getLength ()); i++) {
-      msg.bytes[i] = myChannel.getData()[i];
-    }
-    //   switch case (msg.
-    digitalWrite (13        , HIGH);
-    delay(100);
-    digitalWrite (13        , LOW );
-  }
-  if ( millis() - zp > 1000) {
-    msgType msg;
-    msg.id = 1;
-    msg.value = 35000;
-    myChannel.sendMsg( msg.bytes, sizeof(msg.bytes));
+void loop() // run over and over
+{ uint8_t r; 
+  if (mySerial.available()) {
+    Serial.println("available");
+    delay(10);
+    Serial.write(mySerial.read());
+  }  
+  
+// if (Serial.available())
+//    mySerial.write(Serial.read()); 
+  if ( millis() > zp + 1000) {
     zp = millis();
+    Serial.print( ("zp="));
+    Serial.print(zp);
+    msgType msg;
+    msg.id = ++x;
+    msg.value = 35000;
+    Serial.print("+");
+    mySerial.write( msg.bytes, sizeof(msg.bytes));
+    Serial.println('.');  
   }
-}  // end of loop
+    delay(100);
+}
 
 

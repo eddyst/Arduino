@@ -22,14 +22,14 @@
    ********************************************************************* */
 
 #include "clock.h"
-
+EthernetUDP UdpConnection;
 
 Clock::Clock() : 
   mc_nLocalUDPPort(8880), 
-  mc_ulRefreshInterval(5UL * 60UL * 60UL * 1000UL), // normally every 5 hours
-  //mc_ulRefreshInterval(20 * 1000UL), // every 10 seconds for debuggin
+  //mc_ulRefreshInterval(5UL * 60UL * 60UL * 1000UL), // normally every 5 hours
+  mc_ulRefreshInterval(20 * 1000UL), // every 20 seconds for debuggin
   mc_ulRetryInterval(5 * 1000UL),
-  mc_TimeServer(128,138,141,172) // time.nist.gov NTP server.
+  mc_TimeServer(192,53,103,108) // ptbtime3.ptb.de
 {
   // Force refresh of NTP time in a second. 
   m_ulLastAcquired = millis() - (mc_ulRefreshInterval + 1000);
@@ -40,35 +40,103 @@ Clock::Clock() :
   m_nTimezoneOffset = 0;
 }
 
-void Clock::Setup()
-{
+/*
+void Clock::Setup(HardwareSerial *pPort){
+	Debug = pPort;
 }
+*/
 
 void Clock::Maintain()
 {
-  unsigned long ulCurrent;
-  
-  // Update NTP time if we haven't acquired it for a while &&
-  // it has been a reasonable time since the last attempt.
-  ulCurrent = millis();
-  if (ulCurrent - m_ulLastAcquired > mc_ulRefreshInterval &&
-     (m_ulLastAttempt == 0 || ulCurrent - m_ulLastAttempt > mc_ulRetryInterval))
-    RefreshNTPTime();
+  unsigned long ulCurrent = millis();
+  static boolean m_NTPReciveing = false;
+  if (!m_NTPReciveing) {
+//    #ifdef DEBUG
+//	  DEBUG.println( "m_NTPReciveing=false");
+//    #endif
+    // Update NTP time if we haven't acquired it for a while &&
+    // it has been a reasonable time since the last attempt.
+    if (ulCurrent - m_ulLastAcquired > mc_ulRefreshInterval &&
+       (m_ulLastAttempt == 0 || ulCurrent - m_ulLastAttempt > mc_ulRetryInterval)){
+      #ifdef DEBUG
+		DEBUG.print( "Refreshing NTPTime - ulCurrent=");
+		DEBUG.print(ulCurrent);
+		DEBUG.print( ", m_ulLastAcquired=");
+		DEBUG.print(m_ulLastAcquired);
+		DEBUG.print( ", mc_ulRefreshInterval=");
+		DEBUG.print(mc_ulRefreshInterval);
+		DEBUG.print( ", m_ulLastAttempt=");
+		DEBUG.println(m_ulLastAttempt);
+      #endif
+      UdpConnection.begin(mc_nLocalUDPPort);
+      SendNTPPacket(UdpConnection, mc_TimeServer);
+	  m_ulLastAttempt = ulCurrent; 
+	  m_NTPReciveing = true;
+      #ifdef DEBUG
+		DEBUG.print( "m_ulLastAttempt=");
+		DEBUG.println(m_ulLastAttempt);
+      #endif
+	}
+  }
+  else {
+    #ifdef DEBUG
+ 	  DEBUG.print( "NTPReciveing - ulCurrent=");
+      DEBUG.print(ulCurrent);
+      DEBUG.print(", m_ulLastAttempt=");
+	  DEBUG.print(m_ulLastAttempt);
+      DEBUG.print("B");
+    #endif
+	int x = UdpConnection.parsePacket();
+    #ifdef DEBUG
+      DEBUG.print(", Count=");
+	  DEBUG.println(x);
+    #endif
+   if (x<46) {
+	  if (ulCurrent - m_ulLastAttempt > 5000) {
+	    #ifdef DEBUG
+		  DEBUG.println("NTPTime Timeout, no-response received");
+	    #endif
+	    m_ulLastAttempt = ulCurrent; // Will retry a little later. 
+        m_NTPReciveing = false;
+	    UdpConnection.stop();
+	  }
+	}
+    else {
+	  int nByte;
+	  #ifdef DEBUG
+		DEBUG.println("NTPTime response received");
+	  #endif
+	  // Dump the first 40 bytes. 
+	  for( nByte = 0; nByte < 40; ++nByte)
+	    UdpConnection.read();
+	  // next four bytes are 64 bit integer time stamp of
+	  // seconds since 1 Jan 1900. 
+	  unsigned long ul1900Seconds = 0;
+	  for(nByte = 0; nByte < 4; ++nByte)
+	    ul1900Seconds = (ul1900Seconds<<8) | UdpConnection.read();
+	  // Convert from NTP time basis to Unix time basis (seconds
+	  // since 1 Jan 1970) & save. Record the machine time when
+	  // this time was recorded to extrapolate the current time.
+	  m_ulLastNTPTime = ul1900Seconds - 2208988800UL;
+	  m_ulLastAcquired = ulCurrent;
+	  m_ulLastAttempt = 0; // success.
+      m_NTPReciveing = false;
+	  UdpConnection.stop();
+    }
+  }
 }
 
 unsigned long Clock::GetTimestamp()
 {
   unsigned long ulCurrentOffset;
-  
   if (m_ulLastNTPTime == 0)
     return 0;
-  
   ulCurrentOffset = millis() - m_ulLastAcquired;
   ulCurrentOffset = (ulCurrentOffset + 500) / 1000; // Round to nearest second.
   ulCurrentOffset += m_nTimezoneOffset * 60L; // adjust for timezone [mins].
   return ulCurrentOffset + m_ulLastNTPTime;
 }
-
+/*
 void Clock::WriteTime(HardwareSerial *pPort)
 {
   unsigned long ulTimestamp;
@@ -83,14 +151,15 @@ void Clock::WriteTime(HardwareSerial *pPort)
   pPort->print(':'); 
   if ( (ulTimestamp % 60) < 10 ) // print leading 0 for first 10 sec of each min.
     pPort->print('0');
-  pPort->print(ulTimestamp %60); // print the second
+  pPort->print(ulTimestamp % 60); // print the second
 }
+
 
 void Clock::WriteDateTime(HardwareSerial *pPort)
 {
   DateTime dt;
   
-  DecodeTo(dt);
+  GetDateTime(dt);
   pPort->print(dt.Year);
   pPort->print('/');
   if (dt.Month < 10)
@@ -145,65 +214,78 @@ void Clock::DecodeTo(DateTime &dt)
   
   for(dt.Month = 0, ulDays = 0; dt.Month < 12 && ulDays <= ulCurrent; ++dt.Month)
     ulDays += abyDaysPerMonth[dt.Month];
-  dt.Day = ulCurrent - (ulDays - abyDaysPerMonth[dt.Month - 1]) + 1;
+  dt.Day = ulCurrent - (ulDays - abyDaysPerMonth[dt.Month]);
 }
+*/
+
+static  const uint8_t monthDays[]={31,28,31,30,31,30,31,31,30,31,30,31}; // API starts months from 1, this array starts from 0
+#define LEAP_YEAR(Y)     ( ((1970+Y)>0) && !((1970+Y)%4) && ( ((1970+Y)%100) || !((1970+Y)%400) ) )
+
+DateTime Clock::GetDateTime(){
+	return GetDateTime( GetTimestamp());
+}
+DateTime Clock::GetDateTime(unsigned long time){
+// break the given time_t into time components
+// this is a more compact version of the C library localtime function
+// note that year is offset from 1970 !!!
+  DateTime dt;
+  uint8_t year;
+  uint8_t month, monthLength;
+  unsigned long days;
+  
+  dt.Second = time % 60;
+  time /= 60; // now it is minutes
+  dt.Minute = time % 60;
+  time /= 60; // now it is hours
+  dt.Hour = time % 24;
+  time /= 24; // now it is days
+  //dt.Wday = ((time + 4) % 7) + 1;  // Sunday is day 1 
+  
+  year = 0;  
+  days = 0;
+  while((unsigned)(days += (LEAP_YEAR(year) ? 366 : 365)) <= time) {
+    year++;
+  }
+  dt.Year = year + 1970; // year is offset from 1970 
+  
+  days -= LEAP_YEAR(year) ? 366 : 365;
+  time  -= days; // now it is days in this year, starting at 0
+  
+  days=0;
+  month=0;
+  monthLength=0;
+  for (month=0; month<12; month++) {
+    if (month==1) { // february
+      if (LEAP_YEAR(year)) {
+        monthLength=29;
+      } else {
+        monthLength=28;
+      }
+    } else {
+      monthLength = monthDays[month];
+    }
+    
+    if (time >= monthLength) {
+      time -= monthLength;
+    } else {
+        break;
+    }
+  }
+  dt.Month = month + 1;  // jan is month 1  
+  dt.Day = time + 1;     // day of month
+  return dt;
+}
+
 
 void Clock::SetTimezoneOffset(int nHours, int nMinutes)
 {
   m_nTimezoneOffset = nHours * 60 + nMinutes;
 }
 
-void Clock::RefreshNTPTime()
-{
-  EthernetUDP UdpConnection;
-  int nByte;
-  unsigned long ul1900Seconds;
-  
-#ifdef DEBUG
-  Serial.println("Refreshing NTPTime");
-#endif
-
-  UdpConnection.begin(mc_nLocalUDPPort);
-  SendNTPPacket(UdpConnection, mc_TimeServer);
-  delay(1000);  // Wait for response
-  
-  if (UdpConnection.parsePacket())
-  {
-#ifdef DEBUG
-    Serial.println("NTPTime response received");
-#endif
-    
-    // Dump the first 40 bytes. 
-    for(nByte = 0; nByte < 40; ++nByte)
-      UdpConnection.read();
-    
-    // next four bytes are 64 bit integer time stamp of
-    // seconds since 1 Jan 1900. 
-    ul1900Seconds = 0;
-    for(nByte = 0; nByte < 4; ++nByte)
-      ul1900Seconds = (ul1900Seconds<<8) | UdpConnection.read();
-    
-    // Convert from NTP time basis to Unix time basis (seconds
-    // since 1 Jan 1970) & save. Record the machine time when
-    // this time was recorded to extrapolate the current time.
-    m_ulLastNTPTime = ul1900Seconds - 2208988800UL;
-    m_ulLastAcquired = millis();
-    m_ulLastAttempt = 0; // success.
-  } else
-  {
-    m_ulLastAttempt = millis(); // Will retry a little later. 
-#ifdef DEBUG
-    Serial.println("NTPTime no-response received");
-#endif
-  }
-  
-  UdpConnection.stop();
-}
-
 void Clock::SendNTPPacket(EthernetUDP &rUDP, const IPAddress &rAddress)
 {
   const int cnNTPPacketSize = 48;
-  const static byte abyPacketBuffer[cnNTPPacketSize] PROGMEM = 
+  static byte abyPacketBuffer[cnNTPPacketSize] PROGMEM = 
     {   0b11100011,   // LI, Version, Mode
         0,     // Stratum, or type of clock
         6,     // Polling Interval

@@ -26,7 +26,7 @@
 #include <EthernetUdp.h>
 #include <avr/pgmspace.h>
 
-#define DEBUG
+//#define DEBUG Serial
 
 class DateTime
 {
@@ -65,27 +65,31 @@ class Clock
   // Time is stored in UTC format internal. This offset is
   // applied in GetTimestamp();
   int m_nTimezoneOffset; // [min]. 
+//  HardwareSerial *Debug;
   
   public: 
     Clock();
     
-    void Setup();
+ //   void Setup(HardwareSerial *pPort);
     void Maintain();
     
     unsigned long GetTimestamp();
-    void WriteTime(HardwareSerial *pPort);
-    void WriteDateTime(HardwareSerial *pPort);
+//    void WriteTime(HardwareSerial *pPort);
+//    void WriteDateTime(HardwareSerial *pPort);
     
-    void DecodeTo(DateTime &dt);
-    
+//    void DecodeTo(DateTime &dt);
+    DateTime GetDateTime();
+		DateTime GetDateTime(unsigned long time);
+   
     void SetTimezoneOffset(int nHours, int nMinutes);
-  
+	
   private:
-    void RefreshNTPTime();
+//    void RefreshNTPTime();
     void SendNTPPacket(EthernetUDP &rUDP, const IPAddress &rAddress);
-    inline bool IsLeapYear(unsigned int uYear)
+/*    inline bool IsLeapYear(unsigned int uYear)
     {
       return !(uYear%4) && ( (uYear%100) || !(uYear%400) );
     }
+*/
 };
 

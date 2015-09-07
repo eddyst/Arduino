@@ -1,127 +1,108 @@
 /*
- estBUS protocol library
- inherits from:
-		RS485 protocol library - non-blocking.
-		Devised and written by Nick Gammon.
-		Date: 4 December 2012
-		Version: 1.0
- this is
- by Eddy Steier
- Version 0.1
- 
- Licence: Released for public use.
+estBUS.h (formerly NewSoftSerial.h) - 
+Multi-instance software serial library for Arduino/Wiring
+-- Interrupt-driven receive and other improvements by ladyada
+   (http://ladyada.net)
+-- Tuning, circular buffer, derivation from class Print/Stream,
+   multi-instance support, porting to 8MHz processors,
+   various optimizations, PROGMEM delay tables,  and 
+   direct port writing by Mikal Hart (http://www.arduiniana.org)
+-- Pin change interrupt macros by Paul Stoffregen (http://www.pjrc.com)
+-- 20MHz processor support by Garrett Mace (http://www.macetech.com)
+-- ATmega1280/2560 support by Brett Hagman (http://www.roguerobotics.com/)
 
- Simple Protokoll to use CAN-drivers as hardware.
- This give's the ability to detect collisons on the bus.
- 
-Can send from 1 to 128 bytes from one node to all others.
-Each bit is doubled and inverted. This is to check validity 
-and to prevent the timeout of the dominant level ( 400 ms for the chip I use)
- * Packet length (8 bit of whitch the first one has to be 0)
- * data
- * Packet CRC ( 8 bit checksum)
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
 
-Example is:
-	
-estBUS myChannel ( 20); // bufferLength
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-void setup {
-  myChannel.begin();
-}	
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-void loop {
-	myChannel.update();
-}
+The latest version of this library can always be found at
+http://arduiniana.org.
 */
 
-#include "Arduino.h"
+#ifndef estBUS_h
+#define estBUS_h
 
+#include <inttypes.h>
+#include <Stream.h>
 
-class estBUS 
-  {
+/******************************************************************************
+* Definitions
+******************************************************************************/
 
-  // where we save incoming stuff
-  volatile uint8_t * inData_;
-	
-  // where we save outgoing stuff
-  volatile uint8_t * outData_;
-  volatile uint8_t outLength_;
-  volatile uint8_t outPosByte_;
-	volatile uint8_t outPosBit_;
-	volatile uint8_t outPosStep_;
+#define _SS_MAX_TX_BUFF 64 // TX buffer size
+#define _SS_MAX_RX_BUFF 64 // RX buffer size
+#ifndef GCC_VERSION
+#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#endif
 
-	
-  // how much data is in the buffer
-  const int bufferSize_;
+class estBUS : public Stream
+{
+private:
+  // per object data
+  uint8_t _receivePin;
+  uint8_t _receiveBitMask;
+  volatile uint8_t *_receivePortRegister;
+  uint8_t _transmitBitMask;
+  volatile uint8_t *_transmitPortRegister;
 
-  // this is true once we have valid data in buf
-  bool available_;
-  
-  // an STX (start of text) signals a packet start
-  bool haveSTX_;
-  
-  // count of errors
-  unsigned long errorCount_;
+  uint16_t _buffer_overflow:1;
+ 
+  // static data
+  static char _transmit_buffer[_SS_MAX_TX_BUFF];
+  static volatile uint8_t _transmit_buffer_tail;
+  static volatile uint8_t _transmit_buffer_head;
+  static char _receive_buffer[_SS_MAX_RX_BUFF]; 
+  static volatile uint8_t _receive_buffer_tail;
+  static volatile uint8_t _receive_buffer_head;
+  static estBUS *active_object;
 
-//	enmModus modus_;
-  
-  // variables below are set when we get an STX
-  bool haveETX_;
-  byte inputPos_;
-  byte currentByte_;
-  bool firstNibble_;
-  unsigned long startTime_;
-	
-	
-  // helper private functions
-  byte crc8 (const byte *addr, byte len);
+  // private methods
+  void recv();
+  uint8_t rx_pin_read();
+  boolean  tx_write_byte(uint8_t pin_state);
+  boolean  tx_write_bit(uint8_t pin_state);
+  void tx_pin_write(uint8_t pin_state);
+public:
+  // public methods
+  estBUS(uint8_t receivePin, uint8_t transmitPin);
+  ~estBUS();
+  void begin();
+  bool listen();
+  void end();
+  bool isListening() { return this == active_object; }
+  bool overflow() { bool ret = _buffer_overflow; _buffer_overflow = false; return ret; }
+  int peek();
 
-		// returns true if packet available
-  void sendComplemented (const byte what);
-  void sendByte (const byte what);
-	uint8_t rxPin_, txPin_;
-	
-  public:
-    
-    // constructor
-    estBUS (const uint8_t rxPin, const uint8_t txPin, const byte bufferSize) :
-				rxPin_ (rxPin),
-				txPin_ (txPin),
-        bufferSize_ (bufferSize),
-        inData_ (NULL),
-        outData_ (NULL) {}
-  
-    // destructor - frees memory used
-    ~estBUS () { stop (); }
-  
-    // allocate memory for buf_
-    void begin ();
-    
-    // free memory in buf_
-    void stop ();
-		
-    // handle incoming data, return true if packet ready
-    bool update ();
-  
-    // reset to no incoming data (eg. after a timeout)
-    void reset ();
+  virtual size_t write(uint8_t byte);
 
-		// send data
-		boolean sendMsg (const byte * data, const byte length);
+ 
+  virtual int read();
+  virtual int available();
+  virtual void flush();
   
-		bool available () const { return available_; };
-    // once available, returns the address of the current message
-    const uint8_t * getData ()   const { return inData_; }
-    const uint8_t   getLength () const { return inputPos_; }
-    
-    // return how many errors we have had
-    unsigned long getErrorCount () const { return errorCount_; }
-  
-    // return when last packet started
-    unsigned long getPacketStartTime () const { return startTime_; }
-  
-    // return true if a packet has started to be received
-    bool isPacketStarted () const { return haveSTX_; }
-  
-  }; // end of class estBUS
+  using Print::write;
 
+  // public only for easy access by interrupt handlers
+  static inline void handle_interrupt();
+};
+
+// Arduino 0012 workaround
+#undef int
+#undef char
+#undef long
+#undef byte
+#undef float
+#undef abs
+#undef round
+
+#endif

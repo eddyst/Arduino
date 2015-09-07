@@ -40,20 +40,64 @@
 #include <LCDKeypad.h>
 
 // initialize the library with the numbers of the interface pins
-LCDKeypad lcd;
+//LCDKeypad lcd;
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+int pinLX = A1;
+int pinLY = A2;
+int joyLX = 258;
+int joyLY = 254;
+int pinRX = A3;
+int pinRY = A6;
+int joyRX = 258;
+int joyRY = 254;
 
 void setup() {
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   // Print a message to the LCD.
-  lcd.print("hello, world!");
+  lcd.print("Hallo, Mama!");
+  pinMode(pinLX, INPUT);
+  pinMode(pinLY, INPUT);
+  pinMode(pinRX, INPUT);
+  pinMode(pinRY, INPUT);
+
 }
 
 void loop() {
   // set the cursor to column 0, line 1
   // (note: line 1 is the second row, since counting begins with 0):
   lcd.setCursor(0, 1);
-  // print the number of seconds since reset:
-  lcd.print(millis() / 100);
+  joyLX = map(analogRead(pinLX),0,1023,0,512);
+  if (joyLX<10) 
+    lcd.print(F("  "));
+  else if (joyLX<100)
+    lcd.print(F(" "));
+  lcd.print(joyLX);
+  lcd.print(F(":"));
+  joyLY = map(analogRead(pinLY),0,1023,0,512);
+  if (joyLY<10)
+    lcd.print(F("  "));
+  else if (joyLY<100)
+    lcd.print(F(" "));
+  lcd.print(joyLY);
+ 
+  lcd.print(F("  "));
+
+  joyRX = map(analogRead(pinRX),0,1023,0,512);
+  if (joyRX<10)
+  lcd.print(F("  "));
+  else if (joyRX<100)
+  lcd.print(F(" "));
+  lcd.print(joyRX);
+  lcd.print(F(":"));
+  joyRY = map(analogRead(pinRY),0,1023,0,512);
+  if (joyRY<10)
+  lcd.print(F("  "));
+  else if (joyRY<100)
+  lcd.print(F(" "));
+  lcd.print(joyRY);
+  lcd.print(F("    "));
+
 }
 

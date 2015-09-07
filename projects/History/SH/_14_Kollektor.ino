@@ -4,19 +4,11 @@
 #define KollektorTryDauer                 30000 //30 sec
 #define KollektorWartezeitNachAnBevorAus 120000
 
-//#include <Servo.h> //
-//Servo servoKollektor;  // create servo object to control a servo a maximum of eight servo objects can be created 
-
 uint32_t KollektorGesperrtBisZp = 0;
 
 void   KollektorInit() {
   pinMode     (KollektorPumpeAnPin, OUTPUT);   
   digitalWrite(KollektorPumpeAnPin, LOW   );
-
-  //  servoKollektor.attach(PumpeKollektorServoPwmPin);  // attaches the servo on pin 9 to the servo object 
-  //ToDo: Min und Max in Pulsewidht können hier übergeben werden!
-  //  pinMode     (PumpeKollektorServoEnabledPin, OUTPUT);   
-  //  digitalWrite(PumpeKollektorServoEnabledPin, LOW   );
 
   for (tmpUint8_1 = 0; tmpUint8_1 < 4; tmpUint8_1++) {
     KollektorGesperrtBisZp = (KollektorGesperrtBisZp << 8) | EEPROM.read(EEPROM_Offset_Stagnation + tmpUint8_1);
@@ -62,18 +54,19 @@ void KollektorDoEvents (){
     }
     break;
   case KollektorStatus_AUS: //Anschalten?
-    if (millis() - millis1 > KollektorTryIntervall) {
+    if (Values[_KollektorDach].ValueX10 == unknownValue && millis() - millis1 > KollektorTryIntervall) 
+    || (Values[_KollektorDach].ValueX10 != unknownValue && Values[_KollektorDach].ValueX10 > Values[_SpeicherA5].ValueX10 + 10) {
       digitalWrite(KollektorPumpeAnPin, HIGH);
       millis1 = millis();
       Status = KollektorStatus_TRY;
-    }
+    } 
     break;
   case KollektorStatus_TRY: //Anschalten?
-    if ( Values[_KollektorWTVorlauf].ValueX10 > Values[_SpeicherA5].ValueX10 + 50) {
+    if (Values[_KollektorWTVorlauf].ValueX10 > Values[_SpeicherA5].ValueX10 + 30) {
       millis1 = millis();
       Status = KollektorStatus_AN;
-    } 
-    else if (millis() - millis1 > KollektorTryDauer){
+    } else if (Values[_KollektorDach].ValueX10 == unknownValue && millis() - millis1 > KollektorTryDauer) 
+           || (Values[_KollektorDach].ValueX10 != unknownValue && Values[_KollektorDach].ValueX10 < Values[_SpeicherA5].ValueX10){
       Status = KollektorStatus_AUSschalten;
     }
     break;

@@ -1,111 +1,113 @@
 void DoWorkInit() {
-  pinCount=sizeof(RelayPins)/sizeof(int);
+  pinMode(PowerPin, OUTPUT);
+  digitalWrite(PowerPin,LOW);
+  if (pinCount!=sizeof(SensorPins)/sizeof(int)) {
+    Debug.print(F("pinCount WEICHT VON SensorPins AB"));
+  }
   for (int i=0;i<pinCount;i++)
   { 
-    pinMode(RelayPins[i], OUTPUT);
-    digitalWrite(RelayPins[i],LOW);
+    pinMode(SensorPins[i], INPUT);
+    digitalWrite(SensorPins[i], LOW);
   }
 }
-void DoWork()
-{ 
+void DoWork() { 
   static unsigned long LastDoWork;
-  static unsigned long LastCheckAll;
   static byte Status=0;
-  if (millis() - LastDoWork > 15000) {
-    Serial.print(F("(Status/2)=")); 
-    Serial.print((Status/2));
-    Serial.print(F("  %  (pinCount)=")); 
-    Serial.println((pinCount));
-    byte Pin = (Status/2)%(pinCount);
-    Serial.print(F("DoWork       Status ="));  
-    Serial.print(Status); 
-    Serial.print(F(" Pin ="));  
-    Serial.print(Pin);
-    switch (Status % 2) 
-    { 
-    case 0:
-      Serial.println();
-      for (int i=0; i<pinCount;i++)
-        if (i==Pin)
-        { 
-          Serial.print(F("<")); 
-          Serial.print(RelayPins[i]); 
-          Serial.print(F(">"));
-          digitalWrite(RelayPins[i], HIGH);
-        }
-        else
-        { 
-          Serial.print(F(" ")); 
-          Serial.print(RelayPins[i]); 
-          Serial.print(F(" ")); 
-          digitalWrite(RelayPins[i], LOW);
-        }
-      Serial.println();
-      Serial.println(F(" Status ++"));
+  switch (Status) { 
+  case 0:
+    if (millis() - LastDoWork > 1000) {
+      Debug.println();
+      Debug.print(F("PowerPin > HIGH")); 
+      digitalWrite(PowerPin, HIGH);
       Status ++;
-      LastDoWork = millis() ;
-      break;
-    case 1:
-      // read the value from the sensor:
-      int sensorValue = adc(sensorPin);
-      Serial.print(F(" SensorValue=")); 
-      Serial.print(sensorValue);
-      sensorValue = (sensorValue * 48828 - 7857143) * 35 / 1000000;
-      Serial.print(F(" --> "));  
-      Serial.print(sensorValue); 
-      Serial.print(F(" | "));  
-      Serial.println(LastValue[Pin]);
-  
-      if (Status < pinCount * 2 or abs(LastValue[Pin]-sensorValue) > 1)
-      { 
-        LastValue[Pin] = sensorValue;
-        bitSet(Changed,Pin);
-      }
-      if (Status  < pinCount * 2 )
-      { 
-        Serial.println(F(" Status ++"));
-        Status ++;
-      }
-      else
-        if (millis() - LastCheckAll > 600000)      { 
-          LastCheckAll = millis();
-          Serial.println(F(" Status = 0"));
-          Status = 0;
-        }
-        else      { 
-          Serial.println(F(" SetLastWork"));
-          LastDoWork = millis();
-        }
-      break;
-      //default: 
     }
-    Serial.print(F("             Status ="));  
-    Serial.print(Status); 
-    Serial.print(F("  millis()="));  
-    Serial.println(millis());
-    Serial.print(F("LastDoWork="));  
-    Serial.println(LastDoWork);
+    break;
+  case 1:
+    if (millis() - LastDoWork > 4000) {
+      Debug.println();
+      unsigned long ms;
+      unsigned int sample[pinCount - 1];   //reset the sample value
+      for (int pin=0; pin<pinCount; pin++) {
+        sample[pin] = 0;
+      }
+      for(int i = 0; i<60; i++) {
+        ms = micros();
+        #if aDCLogLevel > 3
+           Debug.print(ms);
+           Debug.print(F(" Pin: "));
+        #endif
+        for (int pin=0; pin<pinCount; pin++) {
+          int v = analogRead( SensorPins[pin]);
+          sample[pin] += v;  //get 60 samples added together 1024 x 60 max
+          #if aDCLogLevel > 3
+             Debug.print(v);  
+             Debug.print(F(" "));
+          #endif
+        }
+        int z=0; 
+        while (micros() - ms < 600) {
+          z++; 
+        }
+        #if aDCLogLevel > 2
+          Debug.print(F("z = "));
+          Debug.println(z);
+        #endif
+      } 
+      for (int pin=0; pin<pinCount; pin++) {
+        int32_t sensorValue = sample[pin] / 60;  //get the average of 60 samples
+        #if aDCLogLevel > 0
+          Debug.print(F(" pin "));  
+          Debug.print(pin);
+        #endif
+        #if aDCLogLevel > 1
+          Debug.print(F(" SensorValue=")); 
+          Debug.print(sensorValue);
+        #endif
+        LastValue[pin] = sensorValue;
+        if (sensorValue < 400) {
+          sensorValue = (sensorValue * 15 - 1620) / 10;
+        } else {
+          sensorValue = (sensorValue * 19 - 3320) / 10;
+        }
+        #if aDCLogLevel > 1
+          Debug.print(F(" --> "));  
+          Debug.print(sensorValue); 
+          Debug.print(F(" | "));  
+          Debug.print(LastTemp[pin]);
+        #endif
+        if ( abs(LastTemp[pin]-sensorValue) > 1) {
+          #if aDCLogLevel > 0
+            Debug.println(F(" --> Set LastTemp")); 
+          #endif
+          LastTemp[pin] = sensorValue;
+          bitSet(Changed,pin);
+        }
+      }
+      #if aDCLogLevel > 1
+        Debug.println();
+        Debug.println(F("PowerPin > LOW")); 
+      #endif
+      digitalWrite(PowerPin, LOW);
+      Status ++;
+    }
+    break;
+  default: 
+#define Intervall 10000
+    if (millis() - LastDoWork > Intervall) {
+       #if aDCLogLevel > 1
+        Debug.print(F("LastDoWork")); 
+        Debug.print(LastDoWork);
+        Debug.print(F(" - ")); 
+        Debug.print(LastDoWork % Intervall);
+      #endif
+      LastDoWork = millis() - LastDoWork % Intervall;
+      #if aDCLogLevel > 1
+        Debug.print(F(" > ")); 
+        Debug.println(LastDoWork);
+      #endif
+      Status = 0;
+    }
   }
 }
 
-inline unsigned int adc(int pin)
-{
- unsigned long ms;
- unsigned int sample = 0;   //reset the sample value
- Serial.println();
- for(int i = 0; i<60; i++) {
-   ms=micros();
-   int v = analogRead(pin);
-   sample += v;  //get 60 samples added together 1024 x 60 max
-   Serial.print(ms);  
-   Serial.print(F(" "));
-   Serial.print(v);  
-   Serial.print(F(" "));
-   int z=0; 
-   while (micros() - ms < 1100) {
-     z++; Serial.print(F("."));
-   }
-   Serial.println(z);
- } 
- return sample / 60;  //get the average of 60 samples
-}//end of adc
+

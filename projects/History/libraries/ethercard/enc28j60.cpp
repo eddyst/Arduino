@@ -8,7 +8,9 @@
 //
 // 2010-05-20 <jc@wippler.nl>
 // 2012-01-18 M.Maassen <mic.maassen@gmail.com>
+//            - store bit mask in selectBit to avoid bit shift code
 //            - obtain SPI pins from Arduino header
+//            - use digitalPinToBitMask from Arduino 
 //            this is for more compatiblity
 //            BUT: the pin for CS must still be on port B !
 
@@ -17,8 +19,7 @@
 #else
 #include <WProgram.h> // Arduino 0022
 #include <pins_arduino.h>
-#endif
-
+#endif	// Arduino Ver.
 #include "enc28j60.h"
 
 word ENC28J60::bufferSize;
@@ -375,9 +376,6 @@ byte ENC28J60::initialize (word size, const byte* macaddr, byte csPin) {
       initSPI();
     selectPin = csPin;  
     pinMode(selectPin, OUTPUT);
-
-
-
     disableChip();
     
     writeOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);

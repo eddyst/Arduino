@@ -82,8 +82,9 @@ void HKVentil() {
             tmpInt32_1 = (int32_t)Schritte * tmpInt32_1 / (Fak + tmpInt32_1);
             Debug.print( F (" tmpInt32_1.2=")); Debug.print(tmpInt32_1);
             static int16_t vDelta = 0;
-    #define vDeltaPlusMinusX10 1000
-            vDelta = vDelta + ((Values[_HKVorlaufTempSoll].ValueX10 - Values[_HKVorlaufTemp2].ValueX10) / 5);
+            int16_t vDeltaPlusMinusX10 = max(1000, min(3000, abs(Values[_HKVorlaufTemp2].ValueX10 - Values[_HKVorlaufTempSoll].ValueX10) * 100));
+            Debug.print(F(" vDeltaPlusMinusX10=")); Debug.print(vDeltaPlusMinusX10);
+            vDelta = vDelta + ((Values[_HKVorlaufTempSoll].ValueX10 - Values[_HKVorlaufTemp2].ValueX10) / 4);
             if ( vDelta > vDeltaPlusMinusX10) 
               vDelta = vDeltaPlusMinusX10;
             else if ( vDelta < -vDeltaPlusMinusX10)

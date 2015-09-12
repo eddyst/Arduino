@@ -115,7 +115,7 @@ void ethDoAnswers() {
               && ethInBuffer[5] == 'i' 
               && ethInBuffer[6] == 'd' 
               && ethInBuffer[7] == '=' ) {
-              if (ethLogLevel > 1) Debug.println( F( " = OneWireAddresse"));
+              if (ethLogLevel > 1) Debug.println( F( "==OneWireAddresse"));
               tmpUint16_1 = 0;
               if (!parseHexChar(ethInBuffer[2], digit)) {
                 if ( ethLogLevel > 0) Debug.println( F( "\neth: owAddr: 1. Stelle der Addresse nicht nummerisch!")); 
@@ -140,18 +140,29 @@ void ethDoAnswers() {
                       if (ethLogLevel > 2) {
                         Debug.print( F ( "  ethInBuffer["));
                         Debug.print(tmpUint8_2);
-                        Debug.print( F ( "] = ")); 
-                        Debug.println(ethInBuffer[tmpUint8_2]);
+                        Debug.print( F ( "]==")); 
+                        Debug.print(ethInBuffer[tmpUint8_2]);
+                        Debug.print( F ( " AddrByteIndex==")); 
+                        Debug.println(AddrByteIndex);
                       }
                       if (parseHexChar(ethInBuffer[tmpUint8_2], digit)) {
+                        if (ethLogLevel > 2) {
+                          Debug.print( F ( "    digit==")); 
+                          Debug.print(digit, DEC);
+                          Debug.print( F ( " HexCharIndex==")); 
+                          Debug.println(HexCharIndex, DEC);
+                        }
                         AfterFirstChar=true;
                         if(HexCharIndex > 1) {
+                          if (ethLogLevel > 2) {
+                            Debug.println( F( "    HexCharIndex=0"));
+                          }
                           HexCharIndex = 0; 
                           AddrByteIndex++;
                         }
                         if (ethLogLevel > 2) {
-                          Debug.print( F ( "  digit=")); 
-                          Debug.println(digit, DEC);
+                          Debug.print( F ( " AddrByteIndex==")); 
+                          Debug.println(AddrByteIndex);
                         }
                         switch (HexCharIndex++){
                         case 0:  
@@ -163,20 +174,21 @@ void ethDoAnswers() {
                           break;
                         }
                         if (ethLogLevel > 2) {
-                          Debug.print( F ( "  Addr["));
+                          Debug.print( F ( "    Addr["));
                           Debug.print(AddrByteIndex);
-                          Debug.print( F ( "]=")); 
+                          Debug.print( F ( "]==")); 
                           Debug.print(Addr[AddrByteIndex],DEC);
-                          Debug.print( F ( "=")); 
+                          Debug.print( F ( "==")); 
                           Debug.println(Addr[AddrByteIndex],HEX);
                         }
                       } 
                       else {
                         if (ethLogLevel > 2) Debug.println( F( "  parseHexChar==false"));
-                        if (AfterFirstChar) {
+                        if (AfterFirstChar) {//Wenn mehrere falsche Zeichen kommen den Index nicht weitersetzen
                           if (ethLogLevel > 2) Debug.println( F( "  HexCharIndex=0"));
                           HexCharIndex = 0; 
                           AddrByteIndex++;
+                          AfterFirstChar = false;
                         }
                       }
                       tmpUint8_2++;

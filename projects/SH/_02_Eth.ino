@@ -24,7 +24,7 @@ void EthInit() {
 }
 
 uint8_t digit;
-uint8_t  HexCharIndex, AddrByteIndex, Addr[7];
+uint8_t  HexCharIndex, AddrByteIndex, Addr[8];
 int16_t Value;
 boolean AskWait = false;
 void ethDoEvents() {

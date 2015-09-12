@@ -47,8 +47,9 @@ void ethDoEvents() {
       client.stop();
     }
     static uint8_t connectionErrors = 0;
-    if (client.connect( "hm.fritz.box", 7072)) {    // try to get a connection, report back via serial:
+    if (client.connect( "hm.fritz.box", 7073)) {    // try to get a connection, report back via serial:
       if (ethLogLevel > 0) Debug.println(F("\neth: connected"));
+      client.println( F ( "pwd"));
       static boolean BootLog = true;
       client.println( F ( ""));
       if (BootLog) {

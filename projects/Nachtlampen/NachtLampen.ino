@@ -1,12 +1,19 @@
 #include <Bounce2.h>
 #define DimDownIntervallMicros 10000 //= 25/Sec
 #define DimDownSek 30
-   #define DimDownStep DimDownIntervallMicros / (DimDownSek * 1000000 / DimDownIntervallMicros)
+#define DimDownStep DimDownIntervallMicros / (DimDownSek * 1000000 / DimDownIntervallMicros)
 
-#define pinTaster1 A2
-#define pinTaster2 A1
-#define pinLampe1  9
-#define pinLampe2  8
+struct typLampe {
+  uint8_t pinTaster;
+  Bounce Taster = Bounce();
+  uint8_t pinLampe;
+  uint8_t statusLampe;
+  uint16_t LampePWMWert;
+  uint32_t timLampe;
+  uint32_t timLampePWM;
+};
+typLampe Lampe[2];
+
 #define statAus          0
 #define statSetAus       1
 #define statAnTaster    10
@@ -14,108 +21,113 @@
 #define statDim         30
 #define statSetDim      31
 
-uint8_t statusLampe1 = statAus;
-uint16_t Lampe1 = 0;
-uint32_t timLampe1;
-uint32_t timLampe1PWM;
-Bounce Taster1 = Bounce();
 
 // the setup routine runs once when you press reset:
 void setup() {
-  Serial.begin (115200);
-  pinMode(pinTaster1, INPUT);
-  pinMode(pinTaster2, INPUT);
-  Taster1.attach(pinTaster2);
-  Taster1.interval(50);
+  Lampe[0].pinTaster = A2;
+  Lampe[1].pinTaster = A1;
+  Lampe[0].pinLampe = 9;
+  Lampe[1].pinLampe = 8;
 
-  pinMode(pinLampe1, OUTPUT);
-  pinMode(pinLampe1, OUTPUT);
+  Serial.begin (115200);
+  for (uint8_t i = 0; i<2; i++) {
+    pinMode(Lampe[i].pinTaster, INPUT);
+    Lampe[i].Taster.attach(Lampe[i].pinTaster);
+    Lampe[i].Taster.interval(50);
+    pinMode(Lampe[i].pinLampe, OUTPUT);
+    Lampe[i].statusLampe = statAus;
+  }
   
 }
 
 void loop() {
-  Taster1.update ( );
-  if( Taster1.rose()){
-    Serial.println(F("Taster1.rised"));
-    switch ( statusLampe1) {
-    case statAus:
-    case statDim:
-      timLampe1 = millis();
-      digitalWrite( pinLampe1, HIGH);
-      statusLampe1 = statAnTaster;
+  for (uint8_t i = 0; i<2; i++) {
+    Lampe[i].Taster.update ( );
+    if( Lampe[i].Taster.rose()){
+      Serial.println(F("Lampe[i].Taster.rised"));
+      switch ( Lampe[i].statusLampe) {
+      case statAus:
+      case statDim:
+        Lampe[i].timLampe = millis();
+        digitalWrite( Lampe[i].pinLampe, HIGH);
+        Lampe[i].statusLampe = statAnTaster;
+        break;
+      default:
+        Lampe[i].statusLampe = statSetAus;
+      }
+    };
+    switch ( Lampe[i].statusLampe) {
+    case statSetAus:
+      Serial.println(F("statSetAus"));
+      digitalWrite( Lampe[i].pinLampe, LOW);
+      Lampe[i].statusLampe = statAus;
       break;
-    default:
-      statusLampe1 = statSetAus;
-    }
-  };
-  switch ( statusLampe1) {
-  case statSetAus:
-    Serial.println(F("statSetAus"));
-    digitalWrite( pinLampe1, LOW);
-    statusLampe1 = statAus;
-    break;
-  case statAus:
-    break;
-  case statAnTaster:
-    if (millis() - timLampe1 > 3000) {
-      Serial.println(F("statAnTaster abgelaufen"));
-      statusLampe1 = statSetDim;
-    }
-    break;
-  case statAnEth:
-    if (millis() - timLampe1 > 300000) {
-      Serial.println(F("statAnEth abgelaufen"));
-      statusLampe1 = statSetDim;
-    } else
-      if (digitalRead( pinLampe1))
-        if (micros() - timLampe1PWM > Lampe1)
-          digitalWrite( pinLampe1, LOW);
-      else 
-        if (micros() - timLampe1PWM > DimDownIntervallMicros) {
-          timLampe1PWM = micros();
-          digitalWrite( pinLampe1, HIGH);
-        }  
-    break;
-  case statSetDim:
-    Serial.println(F("statSetDim"));
-    timLampe1PWM = micros();
-    Lampe1 = DimDownIntervallMicros;
-    Serial.println(DimDownStep);
-    statusLampe1 = statDim;
-    break;
-  case statDim:
-   if (Lampe1 < DimDownStep) {
-      Serial.println(F("statDim abgelaufen"));
-      statusLampe1 = statSetAus;
-    } else {
-      if (digitalRead( pinLampe1)) {
-        //Serial.println("pin = H");
-        if (micros() - timLampe1PWM > Lampe1) {
-//          Serial.println(F("L"));
-          digitalWrite( pinLampe1, LOW);
+    case statAus:
+      break;
+    case statAnTaster:
+      if (millis() - Lampe[i].timLampe > 3000) {
+        Serial.println(F("statAnTaster abgelaufen"));
+        Lampe[i].statusLampe = statSetDim;
+      }
+      break;
+    case statAnEth:
+      if (millis() - Lampe[i].timLampe > 300000) {
+        Serial.println(F("statAnEth abgelaufen"));
+        Lampe[i].statusLampe = statSetDim;
+      } else
+        if (digitalRead( Lampe[i].pinLampe))
+          if (micros() - Lampe[i].timLampePWM > Lampe[i].LampePWMWert)
+            digitalWrite( Lampe[i].pinLampe, LOW);
+        else 
+          if (micros() - Lampe[i].timLampePWM > DimDownIntervallMicros) {
+            Lampe[i].timLampePWM = micros();
+            digitalWrite( Lampe[i].pinLampe, HIGH);
+          }  
+      break;
+    case statSetDim:
+      Serial.println(F("statSetDim"));
+      Lampe[i].timLampePWM = micros();
+      Lampe[i].LampePWMWert = DimDownIntervallMicros;
+      Serial.println(DimDownStep);
+      Lampe[i].statusLampe = statDim;
+      break;
+    case statDim:
+     if (Lampe[i].LampePWMWert < DimDownStep) {
+        Serial.println(F("statDim abgelaufen"));
+        Lampe[i].statusLampe = statSetAus;
+      } else {
+        if (digitalRead( Lampe[i].pinLampe)) {
+          //Serial.println("pin = H");
+          if (micros() - Lampe[i].timLampePWM > Lampe[i].LampePWMWert) {
+  //          Serial.println(F("L"));
+            digitalWrite( Lampe[i].pinLampe, LOW);
+          }
+        }
+        else {
+   /*       Serial.print(Lampe[i].timLampePWM);
+            Serial.print(F(","));
+          Serial.print(micros() - Lampe[i].timLampePWM);
+            Serial.print(F(","));
+          Serial.println(DimDownIntervallMicros);
+  */
+          if (micros() - Lampe[i].timLampePWM > DimDownIntervallMicros) {
+            Lampe[i].timLampePWM = micros();
+            digitalWrite( Lampe[i].pinLampe, HIGH);
+            Lampe[i].LampePWMWert -= DimDownStep;
+  //          Serial.println(Lampe[i].LampePWMWert);
+          }
         }
       }
-      else {
- /*       Serial.print(timLampe1PWM);
-          Serial.print(F(","));
-        Serial.print(micros() - timLampe1PWM);
-          Serial.print(F(","));
-        Serial.println(DimDownIntervallMicros);
-*/
-        if (micros() - timLampe1PWM > DimDownIntervallMicros) {
-          timLampe1PWM = micros();
-          digitalWrite( pinLampe1, HIGH);
-          Lampe1 -= DimDownStep;
-//          Serial.println(Lampe1);
-        }
-      }
+      break;
     }
-    break;
   }
 }
-void statSetAnEth() {
+/*
+void statSetAnEth(uint8_t i) {
     Serial.println(F("statSetAn..."));
-    timLampe1 = millis();
-    timLampe1PWM = micros();
-    statusLampe1 = statAnEth;
+    Lampe[i].timLampe = millis();
+    Lampe[i].timLampePWM = micros();
+    Lampe[i].statusLampe = statAnEth;
 }
+*/
+

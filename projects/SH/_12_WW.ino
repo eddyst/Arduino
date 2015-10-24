@@ -141,7 +141,7 @@ void WWPumpe () {
   if ( ValueX10new1 > WWPumpe_Aus
     || millis() - wwPumpeSperre > 60000) {
     if( digitalRead(WWPumpeAnPin) == LOW   ){  //Pumpe ist aus
-      if ( Values[_SteuerungStatus].ValueX10 <= SteuerungStatusNotfallBetrieb)
+      if ( Values[_ThermeVorlaufValue].ValueX10 == SteuerungStatusNotfallBetrieb)
         ValueX10new1 = WWPumpe_KeinSolarBetrieb;
       else if( Values[_WWSpeicherTemp1].ValueX10 >  WWtMax - 20) 
         ValueX10new1 = WWPumpe_WWSpeicherTemp1GroesserWWtMaxMinus2C;      //is schon 2 C vor Temp.begrenzer und lohnt ni mehr
@@ -155,7 +155,7 @@ void WWPumpe () {
       }
     } 
     else { //Pumpe ist an
-      if ( Values[_SteuerungStatus].ValueX10 <= SteuerungStatusNotfallBetrieb)
+      if ( Values[_ThermeVorlaufValue].ValueX10 == SteuerungStatusNotfallBetrieb)
         ValueX10new1 = WWPumpe_KeinSolarBetrieb;
       else if ( Values[ _WWSpeicherTemp1].ValueX10 > WWtMax)       //Ausschaltkriterium im Sommer wenn genug Solar vorhanden
         ValueX10new1 = WWPumpe_AusWWSpeicherTemp1GroesserWWtMaxMinus2C;   

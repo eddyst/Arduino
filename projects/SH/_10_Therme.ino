@@ -40,9 +40,9 @@ void ThermeInit() {
 }
 
 void ThermeBrennerGehtAus() {
-  if (Values[_SteuerungStatus].ValueX10 > SteuerungStatusNotfallBetrieb) {
-    Values[_ThermeVorlaufValue].ValueX10 = PumpennachlaufStart; //Geändert setzen sparen wir uns
-    if (thermeLogLevel > 0) Debug.println ("Therme: SteuerungStatusSolarBetriebPumpennachlaufStart");      
+  if (Values[_ThermeVorlaufValue].ValueX10 > SteuerungStatusNotfallBetrieb) {
+    Set_ThermeVorlaufValue(PumpennachlaufStart); 
+    if (thermeLogLevel > 0) Debug.println ("Therme: Brenner geht aus ->PumpennachlaufStart");      
   }
 }
 

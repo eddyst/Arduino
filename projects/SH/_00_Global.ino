@@ -28,7 +28,7 @@ typedef struct {
 #define       _SpeicherA5                 19
 
 #define       _SteuerungMemFree           20
-#define       _SteuerungStatus            21
+#define       _ALT_SteuerungStatus_ALT    21
 
 #define       _ThermeAussenTemp           22
 #define       _ThermeBetriebsart          23

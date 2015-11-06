@@ -5,14 +5,14 @@
 #define ThermeVentilVorlaufPin      29
 #define ThermeHappyTempPin          30
 
-#define SteuerungStatusNotfallBetrieb   -110
-#define PumpennachlaufStart             -100
-#define PumpennachlaufBrenner           - 90
-#define Pumpennachlauf                  - 80
-#define AnforderungGesperrt             - 70
-#define VentilstatusAufWWSyncronisieren - 60
-#define VentilzumWechselAufHKFreigeben  - 50
-#define WarteAufVentilInPossitionHK     - 40
+#define SteuerungStatusNotfallBetrieb_110 -110
+#define PumpennachlaufStart_100           -100
+#define PumpennachlaufBrenner_90           - 90
+#define Pumpennachlauf_80                  - 80
+#define VentilAufHKWechseln_70             - 70
+#define WarteBisOptoAufWW_60               - 60
+#define WarteAufVentilInPossitionHK_50     - 50
+#define AnforderungGesperrt             - 40
 #define WarteAufAnforderung             - 30
 #define WarteAufVentilInPossitionWW     - 20
 #define VentilInPossitionWWSperren      - 10
@@ -40,14 +40,15 @@ void ThermeInit() {
 }
 
 void ThermeBrennerGehtAus() {
-  if (Values[_ThermeVorlaufValue].ValueX10 > SteuerungStatusNotfallBetrieb) {
-    Set_ThermeVorlaufValue(PumpennachlaufStart); 
-    if (thermeLogLevel > 0) Debug.println ("Therme: Brenner geht aus ->PumpennachlaufStart");      
+  if (Values[_ThermeVorlaufValue].ValueX10 > SteuerungStatusNotfallBetrieb_110) {
+    Set_ThermeVorlaufValue(PumpennachlaufStart_100); 
+    if (thermeLogLevel > 0) Debug.println ("Therme: Brenner geht aus ->PumpennachlaufStart_100");      
   }
 }
 
 void ThermeSolarbetriebBeginnt() {
   digitalWrite(ThermeHappyTempPin, HIGH);
+  vitoAngeforderteBetriebsart = ThermeBetriebsartAbschalten;
   Set_ThermeVorlaufValue( WarteAufAnforderung);
   if (thermeLogLevel > 0) {
     Debug.println ( F("Therme: SteuerungStatusSolarBetriebInit"));
@@ -60,8 +61,8 @@ void ThermeSolarbetriebEndet () {
   digitalWrite(ThermeExternAnfordernPin   , LOW   );
   digitalWrite(ThermeVentilSperrenPin     , LOW   );
   digitalWrite(ThermeHappyTempPin         , LOW   );
-  Set_ThermeVorlaufValue( SteuerungStatusNotfallBetrieb);
-  if (thermeLogLevel > 0) Debug.println ("Therme: SteuerungStatusNotfallBetrieb");      
+  Set_ThermeVorlaufValue( SteuerungStatusNotfallBetrieb_110);
+  if (thermeLogLevel > 0) Debug.println ("Therme: SteuerungStatusNotfallBetrieb_110");      
 }
 #define ThermeUmschaltventilWW 30
 #define ThermeUmschaltventilHK 10
@@ -102,77 +103,104 @@ void BerechneThermeVorlaufValue() {
 
   ValueX10new1 = Values[_ThermeVorlaufValue].ValueX10;
   switch ( ValueX10new1) { 
-  case SteuerungStatusNotfallBetrieb:
+  case SteuerungStatusNotfallBetrieb_110:
     break;
-  case PumpennachlaufStart:
+  case PumpennachlaufStart_100:
     analogWrite( ThermeVorlaufTempVorgabePin, 0);
-    ValueX10new1 = PumpennachlaufBrenner;
+    ValueX10new1 = PumpennachlaufBrenner_90;
     if (thermeLogLevel > 1) {
       Debug.print  ( F("Therme "));
       Debug.print  ( millis());
-      Debug.println( F(": analogWrite( ThermeVorlaufTempVorgabePin, 0); PumpennachlaufBrenner"));
+      Debug.println( F(": analogWrite( ThermeVorlaufTempVorgabePin, 0); PumpennachlaufBrenner_90"));
     }
     break;
-  case PumpennachlaufBrenner:
+  case PumpennachlaufBrenner_90:
     if ( Values[_ThermeBrennerLeistung].ValueX10 == 0) {
-      ValueX10new1 = Pumpennachlauf;
+      ValueX10new1 = Pumpennachlauf_80;
       if (thermeLogLevel > 1) {
         Debug.print  ( F("Therme "));
         Debug.print  ( millis());
-        Debug.println( F(": Pumpennachlauf"));
+        Debug.println( F(": Pumpennachlauf_80"));
       }
     }
     break;
-  case Pumpennachlauf:
+  case Pumpennachlauf_80:
     if ( Values[ _ThermeVorlaufTempIst].ValueX10 < Values[_ThermeRuecklaufTempIst].ValueX10 + 30) {
-      digitalWrite( ThermeExternAnfordernPin, LOW);
       warteSeit1 = millis();
-      ValueX10new1 = AnforderungGesperrt;
+      ValueX10new1 = VentilAufHKWechseln_70;
       if (thermeLogLevel > 1) {
         Debug.print  ( F("Therme "));
         Debug.print  ( millis());
-        Debug.println( F(": ExternAnfordern = LOW; AnforderungGesperrt"));
+        Debug.println( F(": -> VentilAufHKWechseln_70"));
       }
     }
     break;
-  case AnforderungGesperrt:
-    if (millis() - warteSeit1 > 120000) { //Vor allem Sperre für Ventil
-      ValueX10new1 = WarteAufAnforderung;
+  case VentilAufHKWechseln_70:
+    if (Values[_ThermeUmschaltventilTaster].ValueX10 == ThermeUmschaltventilWW) {
+      digitalWrite( ThermeExternAnfordernPin, LOW);                             // Ohne Anforderung Wechselt die Therme auf WW
+      ValueX10new1 = WarteBisOptoAufWW_60;
       if (thermeLogLevel > 1) {
         Debug.print  ( F("Therme "));
         Debug.print  ( millis());
-        Debug.println( F("-> VentilstatusAufWWSyncronisieren"));
+        Debug.println( F(": -> WarteBisOptoAufWW_60"));
+      }
+    } else {
+      ValueX10new1 = WarteAufVentilInPossitionHK_50;
+      if (thermeLogLevel > 1) {
+        Debug.print  ( F("Therme "));
+        Debug.print  ( millis());
+        Debug.println( F(": -> WarteAufVentilInPossitionHK_50"));
       }
     }
+    warteSeit1 = millis();
     break;
-  case VentilzumWechselAufHKFreigeben:
+  case WarteBisOptoAufWW_60:
     if (Values[_ThermeUmschaltventilOpto].ValueX10 == ThermeUmschaltventilWW) {
-      digitalWrite(ThermeVentilSperrenPin, LOW);                                         // das Ventil sperren
-      vitoAngeforderteBetriebsart = ThermeBetriebsartAbschalten;
+      digitalWrite( ThermeVentilSperrenPin, LOW);                                         // das Ventil sperren
+      digitalWrite( ThermeExternAnfordernPin, HIGH);
       warteSeit1 = millis();
-      ValueX10new1 = WarteAufVentilInPossitionHK;
+      ValueX10new1 = WarteAufVentilInPossitionHK_50;
       if (thermeLogLevel > 1) {
         Debug.print  ( F("Therme "));
         Debug.print  ( millis());
-        Debug.println( F("-> WarteAufVentilInPossitionHK"));
+        Debug.println( F(": -> WarteAufVentilInPossitionHK_50"));
       }
     } else if (millis() - warteSeit1 > 60000) { 
       ValueX10new1 = WarteAufAnforderung;
       if (thermeLogLevel > 1) {
         Debug.print  ( F("Therme "));
         Debug.print  ( millis());
-        Debug.println( F("TimeOut -> WarteAufAnforderung"));
+        Debug.println( F(": TimeOut -> WarteAufAnforderung"));
       }
     }
     break;
-  case WarteAufVentilInPossitionHK:
+  case WarteAufVentilInPossitionHK_50:
     if (   Values[_ThermeUmschaltventilTaster].ValueX10 == ThermeUmschaltventilHK
-        || millis() - warteSeit1 > 60000) {
+        && millis() - warteSeit1 > 2000) {
+      digitalWrite( ThermeVentilSperrenPin, HIGH);                                         // das Ventil sperren
+      digitalWrite( ThermeExternAnfordernPin, LOW);
       ValueX10new1 = WarteAufAnforderung;
       if (thermeLogLevel > 1) {
         Debug.print  ( F("Therme "));
         Debug.print  ( millis());
-        Debug.println( F("-> WarteAufAnforderung"));
+        Debug.println( F(": -> VentilstatusAufWWSyncronisieren"));
+      }
+    } else if (millis() - warteSeit1 > 60000) { 
+      ValueX10new1 = WarteAufAnforderung;
+      if (thermeLogLevel > 1) {
+        Debug.print  ( F("Therme "));
+        Debug.print  ( millis());
+        Debug.println( F(": TimeOut -> WarteAufAnforderung"));
+      }
+    }
+    break;
+  case AnforderungGesperrt:
+    if (millis() - warteSeit1 > 120000) {
+      ValueX10new1 = WarteAufAnforderung;
+      if (thermeLogLevel > 1) {
+        Debug.print  ( F("Therme "));
+        Debug.print  ( millis());
+        Debug.println( F(": -> WarteAufAnforderung"));
       }
     }
     break;
@@ -180,20 +208,19 @@ void BerechneThermeVorlaufValue() {
     if (   Values[_HKAnforderung].ValueX10 >= AnforderungTRUE 
         || Values[_WWAnforderung].ValueX10 >= AnforderungTRUE) {
       warteSeit1 = millis();
-      vitoAngeforderteBetriebsart = ThermeBetriebsartWW;
       ValueX10new1 = WarteAufVentilInPossitionWW;    
       if (thermeLogLevel > 1) {
         Debug.print  ( F("Therme "));
         Debug.print  ( millis());
-        Debug.println( F("-> WarteAufVentilInPossitionWW"));
+        Debug.println( F(": -> WarteAufVentilInPossitionWW"));
       }
-    } else {
-      if (Values[_ThermeUmschaltventilTaster].ValueX10 == ThermeUmschaltventilWW) {
-        if (Values[_ThermeUmschaltventilTaster].ValueX10 != Values[_ThermeUmschaltventilOpto].ValueX10) {
-          vitoAngeforderteBetriebsart = ThermeBetriebsartWW;
-          warteSeit1 = millis();
-          ValueX10new1 = VentilzumWechselAufHKFreigeben;
-        }
+    } else if (Values[_ThermeUmschaltventilTaster].ValueX10 == ThermeUmschaltventilWW) {
+        warteSeit1 = millis();
+        ValueX10new1 = VentilAufHKWechseln_70;
+      if (thermeLogLevel > 1) {
+        Debug.print  ( F("Therme "));
+        Debug.print  ( millis());
+        Debug.println( F(": -> VentilAufHKWechseln_70"));
       }
     }
     break;
@@ -204,7 +231,7 @@ void BerechneThermeVorlaufValue() {
       if (thermeLogLevel > 1) {
         Debug.print  ( F("Therme "));
         Debug.print  ( millis());
-        Debug.println( F(" Ventil passt, in 2 Sek sperren"));
+        Debug.println( F(": Ventil passt, in 2 Sek sperren"));
       }
     } else if( millis() - warteSeit1 > 2000) {
       ValueX10new1 = WarteAufAnforderung;
@@ -219,7 +246,7 @@ void BerechneThermeVorlaufValue() {
     if (Values[_ThermeUmschaltventilTaster].ValueX10 == ThermeUmschaltventilWW) {
       if( millis() - warteSeit1 > 2000) {                                                    // scheint stabil zu sein
         digitalWrite( ThermeVentilSperrenPin, HIGH);                                         // das Ventil sperren
-        vitoAngeforderteBetriebsart = ThermeBetriebsartAbschalten;
+//        vitoAngeforderteBetriebsart = ThermeBetriebsartAbschalten;
         if (thermeLogLevel > 1) {
           Debug.print  ( F("Therme "));
           Debug.print  ( millis());
@@ -265,7 +292,7 @@ void BerechneThermeVorlaufValue() {
     }
     else { 
       if (Values[_ThermeVorlaufValue].ValueX10 > 0) {
-        ValueX10new1 = PumpennachlaufStart;
+        ValueX10new1 = PumpennachlaufStart_100;
         if (thermeLogLevel > 1) {
           Debug.print  ( F("Therme "));
           Debug.print  ( millis());
@@ -288,7 +315,7 @@ void BerechneThermeVentilVorlaufPin(){
     }
   } 
   else {
-    if (    Values[_ThermeVorlaufValue].ValueX10 >= Pumpennachlauf
+    if (    Values[_ThermeVorlaufValue].ValueX10 >= Pumpennachlauf_80
          && Values[_ThermeVorlaufValue].ValueX10 < WarteAufAnforderung) {                     //Wenn Therme gerade abgeschalten hat
       //if ( Values[ _ThermeVorlaufTempIst].ValueX10 <= Values[ _SpeicherA2].ValueX10 + 20) {//erst 2° unter SpeicherA2 runter schalten
         digitalWrite( ThermeVentilVorlaufPin, LOW);

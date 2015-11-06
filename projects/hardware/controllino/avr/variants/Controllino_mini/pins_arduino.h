@@ -25,4 +25,4 @@
 #include "../standard/pins_arduino.h"
 #undef NUM_ANALOG_INPUTS
 #define NUM_ANALOG_INPUTS           8
-#define CONROLLINO_MINI
+#define CONTROLLINO_MINI

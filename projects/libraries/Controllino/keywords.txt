@@ -15,6 +15,7 @@ Controllino_RTC_init	KEYWORD2
 Controllino_SetTimeDate	KEYWORD2
 Controllino_ReadTimeDate	KEYWORD2
 Controllino_GetDay	KEYWORD2
+Controllino_GetWeekDay	KEYWORD2
 Controllino_GetMonth	KEYWORD2
 Controllino_GetYear	KEYWORD2
 Controllino_GetHour	KEYWORD2

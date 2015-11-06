@@ -4,8 +4,8 @@ This file contains all Controllino specific extensions to standard Arduino frame
 	- RTC API interface
 	- RS485 interface
 
-Version 0.8
-3.6.2015
+Version 0.9
+25.9.2015
 
 Version History
 0.1 - 1.8.2014 - First header definition of all key words
@@ -16,6 +16,7 @@ Version History
 0.6 - 14.1.2015 - RS485 interface.
 0.7 - 10.2.2015 - Updated RTC SS functions
 0.8 - 3.6.2015 - Added visual aliases
+0.9 - 25.9.2015 - Updated RTC functions with weekdays
 */
 
 #ifndef Controllino_h
@@ -30,7 +31,7 @@ Version History
 	#include "WProgram.h"
 #endif
 
-#ifdef CONROLLINO_MINI
+#ifdef CONTROLLINO_MINI
 // Controllino I/O pin alias vs Arduino pin number
 #define CONTROLLINO_PIN_HEADER_DIGITAL_IN_00 2
 #define CONTROLLINO_SCREW_TERMINAL_DIGITAL_IN_00 2
@@ -684,18 +685,19 @@ Version History
 
 #endif
 
-/* This function initializes RTC chip (DS3234) and prepares communication via SPI using specified pin as chip select. 
+/* This function initializes RTC chip (RV-2123) and prepares communication via SPI using specified pin as chip select. 
 WARNING: This function uses 10ms delay, because the RTC chip requires it. */
 char Controllino_RTC_init(unsigned char aChipSelect);
 
-/* This function sets the time and date to the connected RTC chip (DS3234). Return code -1 means RTC chip was not properly initialized before. */
-char Controllino_SetTimeDate(unsigned char aDay, unsigned char aMonth, unsigned char aYear, unsigned char aHour, unsigned char aMinute, unsigned char aSecond);
+/* This function sets the time and date to the connected RTC chip (RV-2123). Return code -1 means RTC chip was not properly initialized before. */
+char Controllino_SetTimeDate(unsigned char aDay, unsigned char aWeekDay,unsigned char aMonth, unsigned char aYear, unsigned char aHour, unsigned char aMinute, unsigned char aSecond);
 
-/* This function reads the time and date from the connected RTC chip (DS3234) and fills supplied variables. Return code -1 means RTC chip was not properly initialized before. */
-char Controllino_ReadTimeDate(unsigned char *aDay, unsigned char *aMonth, unsigned char *aYear, unsigned char *aHour, unsigned char *aMinute, unsigned char *aSecond);
+/* This function reads the time and date from the connected RTC chip (RV-2123) and fills supplied variables. Return code -1 means RTC chip was not properly initialized before. */
+char Controllino_ReadTimeDate(unsigned char *aDay, unsigned char *aWeekDay, unsigned char *aMonth, unsigned char *aYear, unsigned char *aHour, unsigned char *aMinute, unsigned char *aSecond);
 
 /* This set of functions reads one variable of connected RTC chip and returns it. Return code -1 means RTC chip was not properly initialized before. */
 char Controllino_GetDay();
+char Controllino_GetWeekDay();
 char Controllino_GetMonth();
 char Controllino_GetYear();
 char Controllino_GetHour();

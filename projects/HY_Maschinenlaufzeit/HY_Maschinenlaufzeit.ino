@@ -8,11 +8,13 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01 };   // MAC address.
+//byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01 };   // MAC address. B3
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x02 };   // MAC address WD5
+
 /*IPAddress ip(192,168,1, 177);
 IPAddress dnsServer(192,168,1, 1);
 IPAddress gateway(192,168,1, 1);*/
-IPAddress ip       ( 10,  0,  6, 103);
+IPAddress ip       ( 10,  0,  6, 105);
 IPAddress dnsServer( 10,  4,  1,   1);
 IPAddress gateway  ( 10,  4,  1,   1);
 IPAddress subnet   (255,  0,  0,   0);

@@ -26,5 +26,5 @@
 #undef NUM_DIGITAL_PINS 
 #define NUM_DIGITAL_PINS            68
 #undef NUM_ANALOG_INPUTS
-#define NUM_ANALOG_INPUTS           14
+#define NUM_ANALOG_INPUTS           16
 #define CONTROLLINO_MEGA
